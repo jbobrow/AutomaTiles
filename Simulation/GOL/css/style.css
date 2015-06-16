@@ -1,0 +1,25 @@
+*{
+	margin: 0;
+	padding: 0; 
+}
+
+#two {
+	z-index: 0;
+}
+
+#buttons {
+	z-index: 1;
+	clear: both;
+	position: fixed;
+	top: 20px;
+	left: 20px;
+}
+
+button {
+	border-style: none;
+	background-color: rgba(0, 0, 0, .8);
+	color: rgb(221, 201, 133);
+	font-size: 1.2em;
+	padding: 10px;
+	border-radius: 10px;
+}
