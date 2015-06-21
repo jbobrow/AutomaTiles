@@ -13,6 +13,8 @@ Cell = function(i){
 
 	this.currentShape = 'square';
 
+	this.neighbors = [];
+
 	// create the six points to be updated for each shape
 	var points = [
 	    new Two.Anchor(0, 0),
@@ -40,8 +42,9 @@ Cell.prototype = {
 		this.colorOn = '#ffffff';
 		this.colorOff = '#000000';
 
-
 		this.currentShape = 'square';
+
+		this.neighbors = [];
 
 		// create the six points to be updated for each shape
 		var points = [
@@ -142,17 +145,54 @@ Cell.prototype = {
 	},
 
 	getNeighbors : function(){
+
+		// create temp neighbors
+		var tempNeighbors = [];
+
 		switch(shape){
 
-			case 'hexagon':
+			case 'triangle':
 				break;
 
 			case 'square':
+				  // top left
+				  tempNeighbors.push(this.index - COLS - 1);
+				  // top
+				  tempNeighbors.push(this.index - COLS);
+				  // top right
+				  tempNeighbors.push(this.index - COLS + 1);
+				  // right
+				  tempNeighbors.push(this.index + 1);
+				  // bottom right
+				  tempNeighbors.push(this.index + COLS + 1);
+				  // bottom
+				  tempNeighbors.push(this.index + COLS);
+				  // bottom left
+				  tempNeighbors.push(this.index + COLS - 1);
+				  // left
+				  tempNeighbors.push(this.index - 1);
 				break;
 
 			case 'hexagon':
+				  // top left
+				  tempNeighbors.push(this.index - COLS - 1);
+				  // top
+				  tempNeighbors.push(this.index - 2*COLS);
+				  // top right
+				  tempNeighbors.push(this.index - COLS);
+				  // bottom right
+				  tempNeighbors.push(this.index + COLS);
+				  // bottom
+				  tempNeighbors.push(this.index + 2*COLS);
+				  // bottom left
+				  tempNeighbors.push(this.index + COLS - 1);
 				break;
 		}
+
+		// replace neighbors with temp neighbors
+		this.neighbors = tempNeighbors.slice();
+
+		//console.log(this.neighbors);
 	},
 
 	setColorOn : function(color){
@@ -190,6 +230,8 @@ Cell.prototype = {
 			if(Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.5)
 				this.shape.vertices[i].y = this.shape.vertices[i].y + EASEVAL * (this.targetVertices[i].y - this.shape.vertices[i].y);
 		}
+
+		// update state of on or off in simulation
 
 	},
 
