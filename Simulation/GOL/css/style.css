@@ -8,6 +8,7 @@
 }
 
 #buttons {
+	visibility: hidden;
 	z-index: 1;
 	clear: both;
 	position: fixed;

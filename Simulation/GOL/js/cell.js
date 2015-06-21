@@ -148,12 +148,20 @@ Cell.prototype = {
 		}
 	},
 
+	setFill : function(color){
+		this.shape.fill = color;
+	},
+
+	setStroke : function(color){
+		this.shape.stroke = color;
+	},
+
 	update : function(){
 		// update the position of the shape
 		// console.log("target position x: " + this.targetPosition.x);
 		// console.log("actual position x: " + this.position.x);
 
-		if(Math.abs(this.targetPosition.x - this.position.x) > .5 || Math.abs(this.targetPosition.y - this.position.y) > .5) {
+		if(Math.abs(this.targetPosition.x - this.position.x) > 0.5 || Math.abs(this.targetPosition.y - this.position.y) > 0.5) {
 			this.position.x = this.position.x + EASEVAL * (this.targetPosition.x - this.position.x);
 			this.position.y = this.position.y + EASEVAL * (this.targetPosition.y - this.position.y);
 
@@ -162,11 +170,12 @@ Cell.prototype = {
 
 		// update the position of vertices
 		for(var i = 0; i<6; i++) {
-			if(Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > .5)
+			if(Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > 0.5)
 				this.shape.vertices[i].x = this.shape.vertices[i].x + EASEVAL * (this.targetVertices[i].x - this.shape.vertices[i].x);
-			if(Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > .5)
+			if(Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.5)
 				this.shape.vertices[i].y = this.shape.vertices[i].y + EASEVAL * (this.targetVertices[i].y - this.shape.vertices[i].y);
 		}
+
 	},
 
 	draw : function(){

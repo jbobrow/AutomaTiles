@@ -1,24 +1,24 @@
 var two;
-var test = [];
+var population = [];
 
-var ROWS = 10;
+var ROWS = 20;
 var COLS = 10;
 
   var makeTri = function(){
     for(var i=0; i<ROWS*COLS; i++) {
-      test[i].setShape('triangle');
+      population[i].setShape('triangle');
     }
   }
 
   var makeSquare = function(){
     for(var i=0; i<ROWS*COLS; i++) {
-      test[i].setShape('square');
+      population[i].setShape('square');
     }
   }
 
   var makeHex = function(){
     for(var i=0; i<ROWS*COLS; i++) {  
-      test[i].setShape('hexagon');
+      population[i].setShape('hexagon');
     }
   }
 
@@ -34,8 +34,8 @@ var COLS = 10;
 
 
   for(var i=0; i<ROWS*COLS; i++) {
-    test.push(new Cell(i));
-    test[i].setShape('square');
+    population.push(new Cell(i));
+    population[i].setShape('square');
   }
 
   _.defer(function() {
@@ -48,7 +48,7 @@ var COLS = 10;
         // update loop here
         
         for(var i=0; i<ROWS*COLS; i++) {
-          test[i].update();
+          population[i].update();
         }
 
       })
