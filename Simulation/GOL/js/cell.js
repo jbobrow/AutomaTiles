@@ -142,16 +142,22 @@ Cell.prototype = {
 		}
 		// set current shape
 		this.currentShape = shape;
+
+		// get the new neighbors
+		this.getNeighbors();
 	},
 
+	// TODO: figure out wrapping neighbors or ignore out of bound neighbors
 	getNeighbors : function(){
 
 		// create temp neighbors
 		var tempNeighbors = [];
 
-		switch(shape){
+		switch(this.currentShape){
 
 			case 'triangle':
+				  // this gets a bit busy, so handle it in its own func :)
+				  tempNeighbors = this.getTriangleNeighbors();
 				break;
 
 			case 'square':
@@ -192,7 +198,45 @@ Cell.prototype = {
 		// replace neighbors with temp neighbors
 		this.neighbors = tempNeighbors.slice();
 
-		//console.log(this.neighbors);
+		console.log("neighbors: ");
+		console.log(this.neighbors);
+	},
+
+	getTriangleNeighbors : function(){
+		// create temp neighbors
+		var tempNeighbors = [];
+
+  		var row = Math.floor(this.index / COLS);
+
+		switch(row%4){
+			case 0: 
+			    tempNeighbors.push(this.index + COLS);
+			    tempNeighbors.push(this.index + COLS - 1);
+			    tempNeighbors.push(this.index - COLS);
+			    break;
+
+			case 1: 
+			    tempNeighbors.push(this.index - COLS);
+			    tempNeighbors.push(this.index - COLS - 1);
+			    tempNeighbors.push(this.index + COLS - 1);
+			    break;
+			    
+			case 2: 
+			    tempNeighbors.push(this.index + COLS);
+			    tempNeighbors.push(this.index + COLS - 1);
+			    tempNeighbors.push(this.index - COLS - 1);
+			    break;
+			    
+			case 3: 
+			    tempNeighbors.push(this.index - COLS);
+			    tempNeighbors.push(this.index - COLS - 1);
+			    tempNeighbors.push(this.index + COLS);
+			    break;
+		}
+		  
+		// replace neighbors with temp neighbors
+		return tempNeighbors;		
+
 	},
 
 	setColorOn : function(color){
