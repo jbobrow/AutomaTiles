@@ -8,6 +8,9 @@ Cell = function(i){
 	this.position = {x:0, y:0};
 	this.targetPosition = {x:0, y:0};
 
+	this.colorOn = '#ffffff';
+	this.colorOff = '#000000';
+
 	this.currentShape = 'square';
 
 	// create the six points to be updated for each shape
@@ -33,6 +36,10 @@ Cell.prototype = {
 		this.side = 100;
 		this.position = {x:0, y:0};
 		this.targetPosition = {x:0, y:0};
+
+		this.colorOn = '#ffffff';
+		this.colorOff = '#000000';
+
 
 		this.currentShape = 'square';
 
@@ -146,6 +153,14 @@ Cell.prototype = {
 			case 'hexagon':
 				break;
 		}
+	},
+
+	setColorOn : function(color){
+		this.colorOn = color;
+	},
+
+	setColorOff : function(color){
+		this.colorOff = color;
 	},
 
 	setFill : function(color){
