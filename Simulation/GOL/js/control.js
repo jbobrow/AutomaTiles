@@ -12,17 +12,11 @@ function Settings(){
 
     this.frequency = 2;
 
+    this.autoplay = false;
+
     this.step = function(){
         //step forward in game of life
         step();
-    };
-
-    this.play = function(){
-    	//play simulation
-    };
-
-    this.stop = function(){
-    	//stop simulation
     };
 }
 
@@ -32,13 +26,10 @@ var gui = new dat.GUI();
 // place a dropdown here for shapes
 var shape_control = gui.add(settings, 'shape', [ 'triangle', 'square', 'hexagon' ] );
 
-var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
+gui.add(settings, 'step');
+gui.add(settings, 'autoplay');
 
-var f0 = gui.addFolder('actions');
-f0.add(settings, 'step');
-f0.add(settings, 'play');
-f0.add(settings, 'stop');
-f0.closed = true;
+var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
 
 var f1 = gui.addFolder('colors');
 var color_state_on_control = f1.addColor(settings, 'color_state_on');
