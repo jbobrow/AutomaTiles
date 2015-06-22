@@ -8,10 +8,11 @@ Cell = function(i){
 	this.position = {x:0, y:0};
 	this.targetPosition = {x:0, y:0};
 
-	this.colorOn = '#ffffff';
-	this.colorOff = '#000000';
+	this.colorOn = settings.color_state_on;//'#ffffff';
+	this.colorOff = settings.color_state_off;//'#000000';
 
 	this.currentShape = 'square';
+	this.state = 0;
 
 	this.neighbors = [];
 
@@ -25,9 +26,9 @@ Cell = function(i){
 	    new Two.Anchor(0, 0)
 	];
 	this.shape = two.makePolygon(points);
-	this.shape.stroke = 'rgb(223,91,87)';
+	this.shape.stroke = settings.color_stroke;
 	this.shape.linewidth = 4;
-	this.shape.fill = 'rgb(240, 240, 240)';
+	this.shape.fill = this.colorOff;
 
 	this.targetVertices = [{x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0}];
 }
@@ -43,6 +44,7 @@ Cell.prototype = {
 		this.colorOff = '#000000';
 
 		this.currentShape = 'square';
+		this.state = 0;
 
 		this.neighbors = [];
 
@@ -57,8 +59,8 @@ Cell.prototype = {
 		];
 		this.shape = two.makePolygon(points);
 		this.shape.translation.set(300, 100);
-		this.shape.stroke = 'rgb(0,0,0)';
-		this.shape.fill = 'rgb(255,0,0)';
+		this.shape.stroke = '#ffffff';
+		this.shape.fill = this.colorOff;
 
 		this.targetVertices = [{x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0}, {x:0,y:0}];
 	},
@@ -255,6 +257,10 @@ Cell.prototype = {
 		this.shape.stroke = color;
 	},
 
+	setState : function(state){
+		this.state = state;
+	},
+
 	update : function(){
 		// update the position of the shape
 		// console.log("target position x: " + this.targetPosition.x);
@@ -276,6 +282,12 @@ Cell.prototype = {
 		}
 
 		// update state of on or off in simulation
+		if(this.state == 0) {
+			this.shape.fill = this.colorOff;
+		}
+		else if(this.state == 1) {
+			this.shape.fill = this.colorOn;
+		}
 
 	},
 

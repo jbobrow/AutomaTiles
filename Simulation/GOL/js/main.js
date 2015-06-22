@@ -82,7 +82,8 @@ $(function() {
         // console.log("I JUST TOUCHED SHAPE!!!!");
         var idx = e.toElement.id.split("_").pop() - 1;
         // console.log(idx);
-        population[idx].setFill('#000000');
+        // set the state to the opposite
+        population[idx].setState((population[idx].state+1)%2); //setFill(population[idx].colorOff);
     });
   }
 

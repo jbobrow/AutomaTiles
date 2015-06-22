@@ -4,9 +4,9 @@ function Settings(){
     this.duration = 120;
     this.distance = 20;
 
-    this.color_state_on = '#ff5555';
-    this.color_state_off = '#550000';
-    this.color_stroke = '#DF5B57';
+    this.color_state_on = '#ffffff';
+    this.color_state_off = '#333333';
+    this.color_stroke = '#ffffff';
 
     this.shape = 'square';
 
@@ -32,7 +32,7 @@ var gui = new dat.GUI();
 // place a dropdown here for shapes
 var shape_control = gui.add(settings, 'shape', [ 'triangle', 'square', 'hexagon' ] );
 
-var freq_control = gui.add(settings, 'frequency', 1, 60).step(1);
+var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
 
 var f0 = gui.addFolder('actions');
 f0.add(settings, 'step');
@@ -49,7 +49,7 @@ f1.closed = true;
 // handle color change
 color_state_on_control.onChange(function() {
     for(var i=0; i<ROWS*COLS; i++) {
-    	population[i].setFill(settings.color_state_on);	// get rid of this after simulation running
+    	// population[i].setFill(settings.color_state_on);	// get rid of this after simulation running
     	population[i].setColorOn(settings.color_state_on);
     }
 
@@ -57,7 +57,7 @@ color_state_on_control.onChange(function() {
 
 color_state_off_control.onChange(function() {
     for(var i=0; i<ROWS*COLS; i++) {
-    	population[i].setFill(settings.color_state_off);	// get rid of this after simulation running
+    	// population[i].setFill(settings.color_state_off);	// get rid of this after simulation running
     	population[i].setColorOff(settings.color_state_off); 
     }
 });
