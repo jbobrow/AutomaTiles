@@ -99,7 +99,7 @@ Cell.prototype = {
 					this.targetVertices[4] = {x: 0, y: this.side};
 					this.targetVertices[5] = {x: 0, y: this.side/2};
 
-					console.log("target position x: " + this.targetPosition.x + " y: " + this.targetPosition.y);
+					// console.log("target position x: " + this.targetPosition.x + " y: " + this.targetPosition.y);
 
 				break;
 
@@ -198,8 +198,8 @@ Cell.prototype = {
 		// replace neighbors with temp neighbors
 		this.neighbors = tempNeighbors.slice();
 
-		console.log("neighbors: ");
-		console.log(this.neighbors);
+		// console.log("neighbors: ");
+		// console.log(this.neighbors);
 	},
 
 	getTriangleNeighbors : function(){
