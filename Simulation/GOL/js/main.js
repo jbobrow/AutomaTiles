@@ -4,6 +4,8 @@ var population = [];
 var ROWS = 20;
 var COLS = 10;
 
+var prevStepTime = 0;
+
 
 // reshape the population
 var makeTri = function(){
@@ -27,29 +29,55 @@ var makeHex = function(){
 
 // determine the next state for the population
 var simulate = function(){
-
-  var populationBuffer = [];
-  // Save cells to buffer (so we opeate with one array keeping the other intact)
-  populationBuffer = population.splice();
   
-  // Visit each cell:
+  // visit each cell:
   for(var i=0; i<ROWS*COLS; i++) {
-    var neigbors = 0;
+    
+    // count neighbors
+    var neighborsAlive = 0;
+    for(var j=0; j<population[i].getNeighbors().length; j++) {
+      var cell = population[i];
+      var neighborID = cell.neighbors[j];
+      if(neighborID < 0 || neighborID >= ROWS*COLS){
+        continue;
+      }
+      if(population[neighborID].state == 1)
+        neighborsAlive = neighborsAlive+1;  
+    }
 
+    // enfore the rules
+    if(neighborsAlive == 3) {
+      //if(populationBuffer)
+      // birth
+      // console.log("birth cell");
+      population[i].setNextState(1);
+    }
+    else if(neighborsAlive >= 2 && neighborsAlive <= 3) {
+      // live
+      // console.log("keep this cell alive");
+      population[i].setNextState(1);
+    }
+    else {
+      // die
+      // console.log("let cell die");
+      population[i].setNextState(0);
+    }
+  }
+
+  // update all cells to their next state
+  for(var i=0; i<ROWS*COLS; i++) {
+    var cell = population[i];
+    cell.setState(cell.nextState);
   }
 
   // And visit all the neighbours of each cell
   // We'll count the neighbours
   // Check alive neighbours and count them
-  // End of yy loop
-  // End of xx loop
   // We've checked the neigbours: apply rules!
   // The cell is alive: kill it if necessary
   // Die unless it has 2 or 3 neighbours
   // The cell is dead: make it live if necessary      
   // Only if it has 3 neighbours
-  // End of y loop
-  // End of x loop
 }
 
 
@@ -94,6 +122,12 @@ $(function() {
       })
       .bind('update', function(frameCount) {
 
+        var millis = Date.now();
+
+        if(millis - prevStepTime >= 1000/settings.frequency && settings.autoplay) {
+          simulate();
+          prevStepTime = millis;
+        }
         // update loop here
         
         for(var i=0; i<ROWS*COLS; i++) {

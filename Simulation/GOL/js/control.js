@@ -16,7 +16,8 @@ function Settings(){
 
     this.step = function(){
         //step forward in game of life
-        step();
+        //step();
+        simulate();
     };
 }
 
@@ -27,7 +28,7 @@ var gui = new dat.GUI();
 var shape_control = gui.add(settings, 'shape', [ 'triangle', 'square', 'hexagon' ] );
 
 gui.add(settings, 'step');
-gui.add(settings, 'autoplay');
+var autoplay_control = gui.add(settings, 'autoplay').listen();
 
 var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
 
@@ -61,9 +62,16 @@ color_stroke_control.onChange(function() {
 
 shape_control.onChange(function() {
 
+    // pause the autoplay
+    settings.autoplay = false;
+
 	switch(settings.shape) {
 		case 'triangle':    makeTri(); 		break;
 		case 'square': 		makeSquare(); 	break;
 		case 'hexagon':     makeHex(); 		break;
     };
+});
+
+autoplay_control.onChange(function() {
+	// turn autoplay on or off depending
 });

@@ -13,6 +13,7 @@ Cell = function(i){
 
 	this.currentShape = 'square';
 	this.state = 0;
+	this.nextState = 0;
 
 	this.neighbors = [];
 
@@ -45,6 +46,7 @@ Cell.prototype = {
 
 		this.currentShape = 'square';
 		this.state = 0;
+		this.nextState = 0;
 
 		this.neighbors = [];
 
@@ -200,6 +202,8 @@ Cell.prototype = {
 		// replace neighbors with temp neighbors
 		this.neighbors = tempNeighbors.slice();
 
+		return this.neighbors;
+
 		// console.log("neighbors: ");
 		// console.log(this.neighbors);
 	},
@@ -259,6 +263,10 @@ Cell.prototype = {
 
 	setState : function(state){
 		this.state = state;
+	},
+
+	setNextState : function(state){
+		this.nextState = state;
 	},
 
 	update : function(){
