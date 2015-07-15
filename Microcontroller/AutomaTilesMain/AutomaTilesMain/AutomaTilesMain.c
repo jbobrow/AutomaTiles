@@ -11,6 +11,7 @@
 #include <avr/interrupt.h>
 
 #include "Pins.h"
+#include "Inits.h"
 
 int main(void)
 {

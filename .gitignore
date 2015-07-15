@@ -1,0 +1,3 @@
+# git ignore file
+Microcontroller/AutomaTilesMain/AutomaTilesMain/Debug/**
+Microcontroller/AutomaTilesMain/AutomaTilesMain/Release/**
