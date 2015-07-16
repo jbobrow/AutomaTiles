@@ -90,6 +90,19 @@ var reset = function(){
   }
 }
 
+$("#two").click(function(e){
+
+    console.log("clicked: ");
+    console.log (e.pageX-$("#two").offset().left);
+    console.log(e.pageY-$("#two").offset().top);
+    // var x = Math.floor((e.pageX-$("#canvas").offset().left) / 20);
+    // var y = Math.floor((e.pageY-$("#canvas").offset().top) / 20);
+    // ctx.fillStyle = "rgb(255,255,255)";
+    // ctx.fillRect(x*20, y*20, 20, 20);
+
+
+ });
+
 
 
 // Do this stuff on load (thanks jquery!)
@@ -98,7 +111,7 @@ $(function() {
   two = new Two({ 
       width:$( window ).width(),
       height:$( window ).height(),
-      //type: Two.Types.canvas, // set the type of renderer // note: canvas on click needs to be handled differently
+      type: Two.Types.canvas, // set the type of renderer // note: canvas on click needs to be handled differently
       fullscreen: false
   });
  
@@ -114,17 +127,17 @@ $(function() {
   two.update();
 
   // Add touch events to the cells
-  for(var i=0; i<ROWS*COLS; i++) {
-    $(population[i].shape._renderer.elem)
-      .css('cursor', 'pointer')
-      .click(function(e) {
-        // console.log("I JUST TOUCHED SHAPE!!!!");
-        var idx = e.toElement.id.split("_").pop() - 1;
-        // console.log(idx);
-        // set the state to the opposite
-        population[idx].setState((population[idx].state+1)%2); //setFill(population[idx].colorOff);
-    });
-  }
+  // for(var i=0; i<ROWS*COLS; i++) {
+  //   $(population[i].shape._renderer.elem)
+  //     .css('cursor', 'pointer')
+  //     .click(function(e) {
+  //       // console.log("I JUST TOUCHED SHAPE!!!!");
+  //       var idx = e.toElement.id.split("_").pop() - 1;
+  //       // console.log(idx);
+  //       // set the state to the opposite
+  //       population[idx].setState((population[idx].state+1)%2); //setFill(population[idx].colorOff);
+  //   });
+  // }
 
   _.defer(function() {
 
