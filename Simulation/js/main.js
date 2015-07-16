@@ -80,6 +80,16 @@ var simulate = function(){
   // Only if it has 3 neighbours
 }
 
+// reset the board to all off state
+var reset = function(){
+  // update all cells to their next state
+  for(var i=0; i<ROWS*COLS; i++) {
+    var cell = population[i];
+    cell.setState(0);
+    cell.setNextState(0);
+  }
+}
+
 
 
 // Do this stuff on load (thanks jquery!)
@@ -88,6 +98,7 @@ $(function() {
   two = new Two({ 
       width:$( window ).width(),
       height:$( window ).height(),
+      //type: Two.Types.canvas, // set the type of renderer // note: canvas on click needs to be handled differently
       fullscreen: false
   });
  

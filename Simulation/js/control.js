@@ -19,6 +19,11 @@ function Settings(){
         //step();
         simulate();
     };
+
+    this.reset = function(){
+        // reset the board to blank
+        reset();
+    }
 }
 
 /* visible control panel */
@@ -28,9 +33,12 @@ var gui = new dat.GUI();
 var shape_control = gui.add(settings, 'shape', [ 'triangle', 'square', 'hexagon' ] );
 
 gui.add(settings, 'step');
+
 var autoplay_control = gui.add(settings, 'autoplay').listen();
 
 var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
+
+gui.add(settings, 'reset');
 
 var f1 = gui.addFolder('colors');
 var color_state_on_control = f1.addColor(settings, 'color_state_on');
