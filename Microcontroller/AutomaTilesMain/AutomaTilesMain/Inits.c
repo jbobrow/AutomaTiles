@@ -21,7 +21,7 @@ void initIO(){//Set up pin directions, pull up/downs, overrides, pin change inte
 
 void initAD(){//Set up all the necessary parameters for analog to digital conversion
 	DIDR0 = MIC; //Disable digital buffering on microphone pin
-	ADMUX = (1 << REFS1) | (0 << REFS0) // 1.1V ref
+	ADMUX = (0 << REFS1) | (0 << REFS0) // VCC ref
 		| (0 << MUX5) | (0 << MUX4) | (0 << MUX3) | (1 << MUX2) | (1 << MUX1) | (1 << MUX0); // (PA7 = MIC)
 	ADCSRA = (1 << ADEN) // enable
 		| (1 << ADATE) | (1 << ADIE) // auto trigger and interrupt enable

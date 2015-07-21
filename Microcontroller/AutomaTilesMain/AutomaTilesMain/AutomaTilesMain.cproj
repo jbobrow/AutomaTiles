@@ -109,6 +109,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="APA102C.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="AutomaTilesMain.c">
       <SubType>compile</SubType>
     </Compile>
@@ -116,6 +119,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Inits.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="APA102C.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Pins.h">
