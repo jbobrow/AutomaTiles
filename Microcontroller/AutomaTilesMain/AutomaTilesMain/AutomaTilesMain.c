@@ -17,9 +17,12 @@ volatile uint16_t holdoff = 10;//for temporarily preventing click outputs
 volatile uint8_t click = 0;//becomes non-zero when a click is detected
 int main(void)
 {
+	initIO();
+	sei();
+	initAD();
     while(1)
     {
-        //TODO:: Please write your application code 
+        
     }
 }
 
@@ -54,7 +57,7 @@ ISR(ADC_vect){
 		}else{
 		holdoff--;
 	}
-	if((delta<<4)<medDelta){// update running median. Error on high side. note that due to comparison, the median is scaled up by 16
+	if((delta<<3)<medDelta){// update running median. Error on high side. note that due to comparison, the median is scaled up by 16
 		medDelta--;
 		}else{
 		medDelta++;
