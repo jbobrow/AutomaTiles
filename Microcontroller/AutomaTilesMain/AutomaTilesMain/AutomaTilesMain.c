@@ -42,10 +42,19 @@ int main(void)
 	initIO();
 	sei();
 	initAD();
+	int i = 0;
     while(1)
     {
-		
-    }
+		if(click){
+			holdoff = 1000;
+			sendColor(LEDCLK, LEDDAT, colors[click%12]);
+			for(int j = 0; j<30000; j++){
+				_NOP();
+			}
+			sendColor(LEDCLK, LEDDAT, dark);
+			click = 0;
+		}
+	}
 }
 
 ISR(INT0_vect){//INT0 interrupt triggered when the pushbutton is pressed
