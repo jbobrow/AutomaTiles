@@ -66,32 +66,37 @@ ISR(PCINT0_vect){//Pin Change 0 interrupt triggered when any of the phototransis
 }
 
 //Values saved for derivative calculation
-volatile uint8_t adcOld = 0;
-volatile uint8_t adcNew = 0;
-volatile uint16_t medDelta = 1;
+volatile uint8_t adc = 0;
+volatile uint16_t median = 1<<12;
+volatile uint16_t medDelta = 1<<5;
 
 ISR(ADC_vect){
-	adcNew = ADCH;// Record ADC value
+	adc = ADCH;// Record ADC value
 	sei(); //re-enable interrupts, allow this calculation to be interrupted
 	
-	uint16_t delta;
-	if(adcNew > adcOld){// Calculate delta
-		delta = adcNew-adcOld;
+	//update median
+	if((adc<<8)<median){// update running median. Error on high side. note that due to comparison, the median is scaled up by 8
+		median--;
 		}else{
-		delta = adcOld-adcNew;
+		median++;
 	}
-	
-	adcOld = adcNew;// update old value
-	if(holdoff == 0){//holdoff can be set in main to disable click being set for a period of time
-		if(medDelta < delta){//check for click. as the median is scaled up by 16, an exceptional event is needed.
-			click = delta;
-		}
-	}else{
-		holdoff--;
+	uint16_t delta;
+	if(median > (adc<<8)){// Calculate delta
+		delta = (median>>8)-adc;
+		}else{
+		delta = adc-(median>>8);
 	}
 	if((delta<<4)<medDelta){// update running median. Error on high side. note that due to comparison, the median is scaled up by 8
 		medDelta--;
 		}else{
 		medDelta++;
 	}
+	if(holdoff == 0){//holdoff can be set in main to disable click being set for a period of time
+		if(medDelta < (delta*3)/2){//check for click. as the median is scaled up by 16, an exceptional event is needed.
+			click = delta;
+		}
+	}else{
+		holdoff--;
+	}
+	
 }
