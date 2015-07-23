@@ -45,14 +45,11 @@ int main(void)
 	int i = 0;
     while(1)
     {
-		if(click){
-			holdoff = 1000;
-			sendColor(LEDCLK, LEDDAT, colors[click%12]);
-			for(int j = 0; j<30000; j++){
-				_NOP();
-			}
-			sendColor(LEDCLK, LEDDAT, dark);
-			click = 0;
+		i++;
+		i%=12;
+		sendColor(LEDCLK, LEDDAT, colors[i]);
+		for(int j = 0; j<30000; j++){
+			_NOP();
 		}
 	}
 }
