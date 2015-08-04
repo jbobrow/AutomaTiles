@@ -6,6 +6,7 @@
  */ 
 #include <inttypes.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "APA102C.h"
 
 #define set(port,pin) (port |= pin) // set port pin
@@ -45,6 +46,8 @@ void sendColor(uint8_t clkPin, uint8_t datPin,uint8_t color[3]){
 	if(!portSet){
 		return;
 	}
+	//Disable interrupts
+	cli();
 	//Start Frame
 	sendByte(clkPin, datPin, 0x00);
 	sendByte(clkPin, datPin, 0x00);
@@ -55,4 +58,6 @@ void sendColor(uint8_t clkPin, uint8_t datPin,uint8_t color[3]){
 	sendByte(clkPin, datPin, color[2]);
 	sendByte(clkPin, datPin, color[1]);
 	sendByte(clkPin, datPin, color[0]);
+	//Re-enable interrupts
+	sei();
 }

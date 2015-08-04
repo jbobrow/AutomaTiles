@@ -17,6 +17,7 @@
 
 volatile uint16_t holdoff = 10;//for temporarily preventing click outputs
 volatile uint8_t click = 0;//becomes non-zero when a click is detected
+volatile uint8_t pressed = 0;
 
 uint8_t colors[][3] = 
 {
@@ -45,17 +46,20 @@ int main(void)
 	int i = 0;
     while(1)
     {
-		i++;
-		i%=12;
-		sendColor(LEDCLK, LEDDAT, colors[i]);
-		for(int j = 0; j<30000; j++){
-			_NOP();
+		if(pressed){
+			i++;
+			i%=12;
+			sendColor(LEDCLK, LEDDAT, colors[i]);
+			for(int j = 0; j<30000; j++){
+				_NOP();
+			}
+			pressed = 0;
 		}
 	}
 }
 
 ISR(INT0_vect){//INT0 interrupt triggered when the pushbutton is pressed
-	
+	pressed = 1;
 }
 
 ISR(PCINT0_vect){//Pin Change 0 interrupt triggered when any of the phototransistors change level
