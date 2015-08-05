@@ -15,65 +15,77 @@
 #include "Inits.h"
 #include "APA102C.h"
 
-volatile uint16_t holdoff = 10;//for temporarily preventing click outputs
-volatile uint8_t click = 0;//becomes non-zero when a click is detected
+volatile static uint16_t holdoff = 10;//for temporarily preventing click outputs
+volatile static uint8_t click = 0;//becomes non-zero when a click is detected
+volatile static uint8_t state = 0;//current state of tile
+register uint16_t timer asm("r2");//.1 ms timer tick
+//volatile static uint16_t 
 
-uint8_t colors[][3] = 
+const uint8_t colors[][3] = 
 {
-	{0xFF,0xFF,0x00},
-	{0xFF,0x7F,0x00},
+	{0x7F,0x7F,0x00},
+	{0xAA,0x55,0x00},
 	{0xFF,0x00,0x00},
-	{0xFF,0x00,0x7F},
-	{0xFF,0x00,0xFF},
-	{0x7F,0x00,0xFF},
+	{0xAA,0x00,0x55},
+	{0x7F,0x00,0x7F},
+	{0x55,0x00,0xAA},
 	{0x00,0x00,0xFF},
-	{0x00,0x7F,0xFF},
-	{0x00,0xFF,0xFF},
-	{0x00,0xFF,0x7F},		
+	{0x00,0x55,0xAA},
+	{0x00,0x7F,0x7F},
+	{0x00,0xAA,0x55},		
 	{0x00,0xFF,0x00},
-	{0x7F,0xFF,0x00}
+	{0x55,0xAA,0x00}
 };
 
-uint8_t dark[] = {0x00,0x00,0x00};
+const uint8_t dark[] = {0x00,0x00,0x00};
+const uint8_t light[] = {0x55, 0x55, 0x55};
 
 int main(void)
 {
+	//Initialization routines
 	setPort(&PORTB);
 	initIO();
 	sei();
 	initAD();
-	int i = 0;
 	sendColor(LEDCLK,LEDDAT,dark);
+	
     while(1)
     {
 		if(click){
-			i++;
-			i%=12;
-			sendColor(LEDCLK, LEDDAT, colors[i]);
-			for(int j = 0; j<30000; j++){
-				_NOP();
-			}
-			sendColor(LEDCLK, LEDDAT, dark);
-			holdoff = 1000;
-			click = 0;
+			
 		}
 	}
 }
 
+ISR(TIM0_COMPA_vect){
+	timer++;
+}
+
 ISR(INT0_vect){//INT0 interrupt triggered when the pushbutton is pressed
-	
+	state = !state;
 }
 
 ISR(PCINT0_vect){//Pin Change 0 interrupt triggered when any of the phototransistors change level
-	
+	static uint8_t prevVals = 0;
+	uint8_t vals = PINA & 0x3f;
+	uint8_t newOn = vals & ~prevVals;
+	for(uint8_t i = 0; i < 6; i++){
+		if(newOn & 1<<i){
+			
+		}
+	}
+	prevVals = vals;
 }
 
-//Values saved for derivative calculation
-volatile uint8_t adc = 0;
-volatile uint16_t median = 1<<12;
-volatile uint16_t medDelta = 1<<5;
+
 
 ISR(ADC_vect){
+	//Values saved for derivative calculation
+	static uint16_t median = 1<<12;
+	static uint16_t medDelta = 1<<5;
+	
+	uint8_t adc;	
+	
 	adc = ADCH;// Record ADC value
 	sei(); //re-enable interrupts, allow this calculation to be interrupted
 	
