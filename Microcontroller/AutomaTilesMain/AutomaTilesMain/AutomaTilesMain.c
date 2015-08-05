@@ -43,15 +43,18 @@ int main(void)
 	sei();
 	initAD();
 	int i = 0;
+	sendColor(LEDCLK,LEDDAT,dark);
     while(1)
     {
 		if(click){
-			holdoff = 1000;
-			sendColor(LEDCLK, LEDDAT, colors[click%12]);
+			i++;
+			i%=12;
+			sendColor(LEDCLK, LEDDAT, colors[i]);
 			for(int j = 0; j<30000; j++){
 				_NOP();
 			}
 			sendColor(LEDCLK, LEDDAT, dark);
+			holdoff = 1000;
 			click = 0;
 		}
 	}
@@ -86,13 +89,13 @@ ISR(ADC_vect){
 		}else{
 		delta = adc-(median>>8);
 	}
-	if((delta<<4)<medDelta){// update running median. Error on high side. note that due to comparison, the median is scaled up by 8
+	if((delta<<4)<medDelta && medDelta > 1){// update running median. Error on high side. note that due to comparison, the median is scaled up by 8
 		medDelta--;
 		}else{
 		medDelta++;
 	}
 	if(holdoff == 0){//holdoff can be set in main to disable click being set for a period of time
-		if(medDelta < (delta*3)/2){//check for click. as the median is scaled up by 16, an exceptional event is needed.
+		if(medDelta < delta){//check for click. as the median is scaled up by 16, an exceptional event is needed.
 			click = delta;
 		}
 	}else{
