@@ -90,7 +90,7 @@ ISR(ADC_vect){
 	}else{
 		holdoff--;
 	}
-	if((delta<<4)<medDelta){// update running median. Error on high side. note that due to comparison, the median is scaled up by 8
+	if((delta<<5)<medDelta){// update running median. Error on high side. note that due to comparison, the median is scaled up by 8
 		medDelta--;
 		}else{
 		medDelta++;
