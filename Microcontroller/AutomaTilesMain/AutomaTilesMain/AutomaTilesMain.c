@@ -44,16 +44,25 @@ int main(void)
 	sei();
 	initAD();
 	int i = 0;
+	sendColor(LEDCLK, LEDDAT, colors[0]);
     while(1)
     {
 		if(pressed){
 			i++;
 			i%=12;
 			sendColor(LEDCLK, LEDDAT, colors[i]);
+			PORTA |= IR;
 			for(int j = 0; j<30000; j++){
 				_NOP();
 			}
+			PORTA &= ~IR;
 			pressed = 0;
+		}
+		
+		if(PINA&0x3F){
+			PORTA |= IR;
+		}else{
+			PORTA &= ~IR;
 		}
 	}
 }
