@@ -1,0 +1,5 @@
+# Microcontroller code
+This is the code and libraries that will be running on the AutomaTiles. It handles all aspects of their operation.
+
+## Programming Instructions
+The ISP should be attached with Pin 1 towards the silk screened label and a coin cell should be in the device. The most recent stable build will be in AutomaTilesMain/AutomaTilesMain/Release, although the project can be easily rebuilt by opening it in Atmel Studio. As the clock speed of the ATTiny84 is only 1 MHz, any programming clock should be kept below 1/4 of that or 250kHz. To program from within Atmel Studio, open Tools>Device Programming and set your tool. Make sure to change the data clock to an appropriate value. Read the device signature to ensure you have communication. If that succeeds, go to the memories tab, ensure the proper .elf file is selected for the flash, and hit program.

@@ -20,7 +20,7 @@ void setPort(volatile uint8_t* port){
 }
 
 //bit bangs an SPI signal to the specified pins of the given data
-void sendBit(uint8_t clkPin, uint8_t datPin, uint8_t data){
+inline void sendBit(uint8_t clkPin, uint8_t datPin, uint8_t data){
 	if(data){
 		set(*SPI_PORT, datPin);
 	}else{
@@ -42,7 +42,7 @@ void sendByte(uint8_t clkPin, uint8_t datPin, uint8_t data){
 	sendBit(clkPin, datPin, bit_val(data,0));
 }
 //bit bangs an SPI signal to the specified pins that generates the specified color formatted for the APA102 provided as a byte array of R,G,B
-void sendColor(uint8_t clkPin, uint8_t datPin,uint8_t color[3]){
+void sendColor(uint8_t clkPin, uint8_t datPin,const uint8_t color[3]){
 	if(!portSet){
 		return;
 	}
