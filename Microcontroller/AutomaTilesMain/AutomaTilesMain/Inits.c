@@ -38,8 +38,8 @@ void initTimer(){//Set up global .1ms timer used for various protocols
 		|(0<<COM0B1)|(0<<COM0B0)//OC0B Disconnected
 		|(1<<WGM01)|(0<<WGM00);//Clear timer on compare match
 	TCCR0B = (0<<WGM02)
-		|(0<<CS02)|(0<<CS01)|(1<<CS00);//ClkIO/1 (1MHz)
-	OCR0A = 100; //100 cycles at 1MHZ = .1ms
+		|(0<<CS02)|(1<<CS01)|(0<<CS00);//ClkIO/8 (125kHz)
+	OCR0A = 125; //125 cycles at 125kHZ = 1ms
 	TIMSK0 = (0<<OCIE0B)|(1<<OCIE0A)|(0<<TOIE0);//Only enable OC Match A interrupt
 }
 
