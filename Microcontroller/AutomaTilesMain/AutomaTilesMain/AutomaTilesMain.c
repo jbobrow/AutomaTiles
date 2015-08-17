@@ -59,10 +59,9 @@ int main(void)
 		timeBuf[i]=0;
 	}
 	
-	
     while(1)
     {
-		if(click){
+		/*if(click){
 			uint8_t states[6];
 			getStates(states);
 			uint8_t numOn = 0;
@@ -78,7 +77,7 @@ int main(void)
 			}
 			holdoff = 500;
 			click = 0;
-		}
+		}*/
 		
 		if(!(timer & 0x3F)){
 			sendColor(LEDCLK, LEDDAT, colors[state]);
@@ -120,18 +119,30 @@ static void getStates(uint8_t * result){
 
 ISR(TIM0_COMPA_vect){
 	timer++;
-	if(timer%(24*state+4)==5){
-		PORTA |= IR;
+	uint8_t cycle = (uint8_t) timer%(24*state+4);
+	if(cycle==5){
+		PORTB |= IR;//Set pin high
+		DDRB |= IR;//Set direction out
+	}else if(cycle==6){
+		DDRB &= ~IR;//Set direction in
+		PORTB &= ~IR;//Set pin tristated
 	}else{
-		PORTA &= ~IR;
+		DDRB &= ~IR;//Set direction in
+		PORTB &= ~IR;//Set pin tristated
+		if(PINB & BUTTON){//Button active high
+			if(holdoff==0){
+				state = !state;//simple setup for 2 state tile
+			}
+			holdoff = 500;//debounce and hold state until released
+		}
 	}
 }
 
 ISR(INT0_vect){//INT0 interrupt triggered when the pushbutton is pressed
-	if(holdoff==0){
+	/*if(holdoff==0){
 		state = !state;//simple setup for 2 state tile
 		holdoff = 500;
-	}
+	}*/
 }
 
 ISR(PCINT0_vect){//Pin Change 0 interrupt triggered when any of the phototransistors change level
