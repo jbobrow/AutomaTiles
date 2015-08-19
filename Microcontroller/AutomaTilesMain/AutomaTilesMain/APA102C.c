@@ -55,7 +55,7 @@ void sendColor(uint8_t clkPin, uint8_t datPin,const uint8_t color[3]){
 	sendByte(clkPin, datPin, 0x00);
 	sendByte(clkPin, datPin, 0x00);
 	//Data
-	sendByte(clkPin, datPin, 0xE1);//Set current to minimum
+	sendByte(clkPin, datPin, 0xE1);//Set brightness to current to minimum TODO: Add setBrightness function (0xE1...0xFF)
 	sendByte(clkPin, datPin, color[2]);
 	sendByte(clkPin, datPin, color[1]);
 	sendByte(clkPin, datPin, color[0]);

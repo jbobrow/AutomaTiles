@@ -1,6 +1,8 @@
 /*
  * APA102C.h
  *
+ * Custom Library for writing values to the APA102C RGB LED
+ *
  * Created: 7/21/2015 15:11:37
  *  Author: Joshua
  */ 

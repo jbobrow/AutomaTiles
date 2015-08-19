@@ -92,9 +92,14 @@ int main(void)
 	}
 }
 
-//Uses the current state of the times ring buffer to determine the states of neighboring tiles
-//For each side, to have a non-zero state, a pluse must have been recieved in the last 100 ms and two of the
-//	last three timing spaces must be equal.
+/* Uses the current state of the times ring buffer to determine the states of neighboring tiles
+ * For each side, to have a non-zero state, a pluse must have been recieved in the last 100 ms and two of the
+ * last three timing spaces must be equal.
+ * 
+ * State is communicated as a period for the pulses. Differences are calculated between pulses and if a consistent
+ * difference is found, that translates directly to a state
+ * Accuracy is traded for number of states (i.e. 5 states can be communicated reliably, while 10 with less robustness)
+*/
 static void getStates(uint8_t * result){
 	cli();//Disable interrupts to safely grab consistent timer value
 	uint32_t curTime = timer;
@@ -133,7 +138,7 @@ static void getStates(uint8_t * result){
 ISR(TIM0_COMPA_vect){
 	timer++;
 	
-	if(timer%(24*state+4)==5){ //State timings are off by 4 from a multiple of 8 to help with detection
+	if(timer%(3*8*state+4)==5){ //State timings are off by 4 from a multiple of 8 to help with detection TODO: Currently sending state*3
 		PORTA |= IR;
 	}else{
 		PORTA &= ~IR;
