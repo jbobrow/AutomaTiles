@@ -23,6 +23,11 @@ function Settings(){
     this.reset = function(){
         // reset the board to blank
         reset();
+    };
+
+    this.save = function(){
+        var container = document.querySelector('#two');
+        window.open('data:image/svg+xml,' + container.innerHTML);
     }
 }
 
@@ -45,6 +50,8 @@ var color_state_on_control = f1.addColor(settings, 'color_state_on');
 var color_state_off_control = f1.addColor(settings, 'color_state_off');
 var color_stroke_control = f1.addColor(settings, 'color_stroke');
 f1.closed = true;
+
+gui.add(settings, 'save');
 
 // handle color change
 color_state_on_control.onChange(function() {

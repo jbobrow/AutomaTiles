@@ -1,8 +1,8 @@
 var two;
 var population = [];
 
-var ROWS = 20;
-var COLS = 10;
+var ROWS = 40;
+var COLS = 20;
 
 var prevStepTime = 0;
 
