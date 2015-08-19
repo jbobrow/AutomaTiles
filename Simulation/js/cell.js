@@ -11,7 +11,7 @@ Cell = function(i){
 	this.colorOn = settings.color_state_on;//'#ffffff';
 	this.colorOff = settings.color_state_off;//'#000000';
 
-	this.currentShape = 'square';
+	this.currentShape = 'hexagon';
 	this.state = 0;
 	this.nextState = 0;
 
@@ -44,7 +44,7 @@ Cell.prototype = {
 		this.colorOn = '#ffffff';
 		this.colorOff = '#000000';
 
-		this.currentShape = 'square';
+		this.currentShape = 'hexagon';
 		this.state = 0;
 		this.nextState = 0;
 

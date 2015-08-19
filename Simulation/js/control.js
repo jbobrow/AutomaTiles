@@ -8,7 +8,7 @@ function Settings(){
     this.color_state_off = '#333333';
     this.color_stroke = '#ffffff';
 
-    this.shape = 'square';
+    this.shape = 'hexagon';
 
     this.frequency = 2;
 
