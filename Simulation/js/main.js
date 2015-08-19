@@ -107,7 +107,7 @@ $(function() {
 
   for(var i=0; i<ROWS*COLS; i++) {
     population.push(new Cell(i));
-    population[i].setShape('square');
+    population[i].setShape('hexagon');
   }
 
   // Update the renderer in order to generate corresponding DOM Elements.
