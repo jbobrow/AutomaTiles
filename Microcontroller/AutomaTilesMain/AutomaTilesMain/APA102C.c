@@ -41,7 +41,8 @@ void sendByte(uint8_t clkPin, uint8_t datPin, uint8_t data){
 	sendBit(clkPin, datPin, bit_val(data,1));
 	sendBit(clkPin, datPin, bit_val(data,0));
 }
-//bit bangs an SPI signal to the specified pins that generates the specified color formatted for the APA102 provided as a byte array of R,G,B
+//bit bangs an SPI signal to the specified pins that generates the specified color 
+//	formatted for the APA102, provided as a byte array of R,G,B
 void sendColor(uint8_t clkPin, uint8_t datPin,const uint8_t color[3]){
 	if(!portSet){
 		return;
