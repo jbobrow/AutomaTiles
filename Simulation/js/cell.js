@@ -297,7 +297,7 @@ Cell.prototype = {
 			if(Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.5)
 				this.shape.vertices[i].y = this.shape.vertices[i].y + EASEVAL * (this.targetVertices[i].y - this.shape.vertices[i].y);
 			else if(Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.0)
-				this.shape.vertices[i].y = this.shape.targetVertices[i].y;
+				this.shape.vertices[i].y = this.targetVertices[i].y;
 		}
 
 		// update state of on or off in simulation
