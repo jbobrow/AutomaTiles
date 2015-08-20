@@ -280,13 +280,24 @@ Cell.prototype = {
 
 			this.shape.translation.set(this.position.x, this.position.y);			
 		}
+		else if(Math.abs(this.targetPosition.x - this.position.x) > 0.0 || Math.abs(this.targetPosition.y - this.position.y) > 0.0){
+			this.position.x = this.targetPosition.x;
+			this.position.y = this.targetPosition.y;
+
+			this.shape.translation.set(this.position.x, this.position.y);
+		}
 
 		// update the position of vertices
 		for(var i = 0; i<6; i++) {
 			if(Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > 0.5)
 				this.shape.vertices[i].x = this.shape.vertices[i].x + EASEVAL * (this.targetVertices[i].x - this.shape.vertices[i].x);
+			else if(Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > 0.0)
+				this.shape.vertices[i].x = this.targetVertices[i].x;
+
 			if(Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.5)
 				this.shape.vertices[i].y = this.shape.vertices[i].y + EASEVAL * (this.targetVertices[i].y - this.shape.vertices[i].y);
+			else if(Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.0)
+				this.shape.vertices[i].y = this.shape.targetVertices[i].y;
 		}
 
 		// update state of on or off in simulation
