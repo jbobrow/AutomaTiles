@@ -2,13 +2,17 @@ var settings = new Settings();
 
 function Settings() {
     this.duration = 120;
-    this.side_length = 50;
+    this.side_length = 20;
 
     this.color_state_on = '#ffffff';
     this.color_state_off = '#333333';
     this.color_stroke = '#ffffff';
-    this.color_hover = '#ff6d58';
-    this.color_neighbor = '#ff5346';
+
+    this.highlight = true;
+    this.color_hover_on = '#ffcdbf';
+    this.color_neighbor_on = '#f8e8e2';
+    this.color_hover_off = '#ff6d58';
+    this.color_neighbor_off = '#6f4c49';
 
     this.shape = 'hexagon';
 
@@ -38,6 +42,7 @@ var gui = new dat.GUI();
 
 // place a dropdown here for shapes
 var shape_control = gui.add(settings, 'shape', ['triangle', 'square', 'hexagon']);
+var side_length_control = gui.add(settings, 'side_length', 2, 200).step(1);
 
 gui.add(settings, 'step');
 
@@ -47,14 +52,19 @@ var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
 
 gui.add(settings, 'reset');
 
-var f1 = gui.addFolder('properties');
-var side_length_control = f1.add(settings, 'side_length', 2, 200).step(1);
+var f1 = gui.addFolder('color');
 var color_state_on_control = f1.addColor(settings, 'color_state_on');
 var color_state_off_control = f1.addColor(settings, 'color_state_off');
 var color_stroke_control = f1.addColor(settings, 'color_stroke');
-var color_hover_control = f1.addColor(settings, 'color_hover');
-var color_neighbor_control = f1.addColor(settings, 'color_neighbor');
 f1.closed = true;
+
+var f2 = gui.addFolder('neighbors');
+var highlight_control = f2.add(settings, 'highlight');
+var color_hover_on_control = f2.addColor(settings, 'color_hover_on');
+var color_neighbor_on_control = f2.addColor(settings, 'color_neighbor_on');
+var color_hover_off_control = f2.addColor(settings, 'color_hover_off');
+var color_neighbor_off_control = f2.addColor(settings, 'color_neighbor_off');
+f2.closed = true;
 
 gui.add(settings, 'save');
 

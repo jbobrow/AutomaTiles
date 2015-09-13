@@ -325,17 +325,27 @@ Cell.prototype = {
         }
 
         // update state of on or off in simulation
-        if (this.isHover == true) {
-            this.shape.fill = settings.color_hover;
-        }
-        else if (this.isHighlight == true) {
-            this.shape.fill = settings.color_neighbor;
+        if (this.state == 1) {
+            if (this.isHover && settings.highlight) {
+                this.shape.fill = settings.color_hover_on;
+            }
+            else if (this.isHighlight && settings.highlight) {
+                this.shape.fill = settings.color_neighbor_on;
+            }
+            else {
+                this.shape.fill = this.colorOn;
+            }
         }
         else if (this.state == 0) {
-            this.shape.fill = this.colorOff;
-        }
-        else if (this.state == 1) {
-            this.shape.fill = this.colorOn;
+            if (this.isHover && settings.highlight) {
+                this.shape.fill = settings.color_hover_off;
+            }
+            else if (this.isHighlight && settings.highlight) {
+                this.shape.fill = settings.color_neighbor_off;
+            }
+            else {
+                this.shape.fill = this.colorOff;
+            }
         }
 
     },
