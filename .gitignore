@@ -2,3 +2,6 @@
 Microcontroller/AutomaTilesMain/AutomaTilesMain/Debug/**
 Microcontroller/AutomaTilesMain/AutomaTilesMain/Release/**
 Microcontroller/AutomaTilesMain/AutomaTilesMain.atsuo
+
+# webstorm
+.idea/

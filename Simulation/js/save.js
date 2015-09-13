@@ -3,32 +3,29 @@
 
 var blobObject = null;
 
-function createDownloadLink(anchorSelector, str, fileName){
+function createDownloadLink(anchorSelector, str, fileName) {
 
     var element = document.getElementById(anchorSelector);
 
-    if(window.navigator.msSaveOrOpenBlob)
-    {
+    if (window.navigator.msSaveOrOpenBlob) {
         var fileData = [str];
         blobObject = new Blob(fileData);
-        element.addEventListener("click", function()
-        {
+        element.addEventListener("click", function () {
             window.navigator.msSaveOrOpenBlob(blobObject, fileName);
         });
     }
-    else
-    {
+    else {
         var container = document.querySelector('#two');
         var url = "data:image/svg+xml," + container.innerHTML;
         element.setAttribute("href", url);
     }
 }
 
-document.addEventListener("click", function(){
+document.addEventListener("click", function () {
     var str = document.getElementById("two").innerHTML;
-    var filename = "automatiles" + Date.now()%1000000 + ".svg";
-    createDownloadLink("save",str,filename);
+    var filename = "automatiles" + Date.now() % 1000000 + ".svg";
+    createDownloadLink("save", str, filename);
 });
 
-var filename = "automatiles" + Date.now()%1000000 + ".svg";
+var filename = "automatiles" + Date.now() % 1000000 + ".svg";
 document.getElementById("save").download = filename;
