@@ -17,6 +17,7 @@ Cell = function (i) {
     this.currentShape = 'hexagon';
     this.state = 0;
     this.nextState = 0;
+    this.isPresent = false;
 
     this.neighbors = [];
 
@@ -325,7 +326,10 @@ Cell.prototype = {
         }
 
         // update state of on or off in simulation
-        if (this.state == 1) {
+        if (!this.isPresent) {
+            this.shape.fill = settings.color_stroke;
+        }
+        else if (this.state == 1) {
             if (this.isHover && settings.highlight) {
                 this.shape.fill = settings.color_hover_on;
             }

@@ -33,14 +33,16 @@ var hoverBegin = function (idx) {
     population[idx].isHover = true;
 
     // show the neighbors
-    for (var i = 0; i < population[idx].getNeighbors().length; i++) {
-        var cell = population[idx];
-        var neighborID = cell.neighbors[i];
-        if (neighborID < 0 || neighborID >= ROWS * COLS) {
-            continue;
+    if(settings.showNeighbors) {
+        for (var i = 0; i < population[idx].getNeighbors().length; i++) {
+            var cell = population[idx];
+            var neighborID = cell.neighbors[i];
+            if (neighborID < 0 || neighborID >= ROWS * COLS) {
+                continue;
+            }
+            var neighbor = population[neighborID];
+            neighbor.isHighlight = true;
         }
-        var neighbor = population[neighborID];
-        neighbor.isHighlight = true;
     }
 };
 
@@ -51,14 +53,16 @@ var hoverEnd = function (idx) {
     population[idx].isHover = false;
 
     // show the neighbors
-    for (var i = 0; i < population[idx].getNeighbors().length; i++) {
-        var cell = population[idx];
-        var neighborID = cell.neighbors[i];
-        if (neighborID < 0 || neighborID >= ROWS * COLS) {
-            continue;
+    if(settings.showNeighbors) {
+        for (var i = 0; i < population[idx].getNeighbors().length; i++) {
+            var cell = population[idx];
+            var neighborID = cell.neighbors[i];
+            if (neighborID < 0 || neighborID >= ROWS * COLS) {
+                continue;
+            }
+            var neighbor = population[neighborID];
+            neighbor.isHighlight = false;
         }
-        var neighbor = population[neighborID];
-        neighbor.isHighlight = false;
     }
 };
 
@@ -74,9 +78,13 @@ var simulate = function () {
         for (var j = 0; j < population[i].getNeighbors().length; j++) {
             var cell = population[i];
             var neighborID = cell.neighbors[j];
+
             if (neighborID < 0 || neighborID >= ROWS * COLS) {
                 continue;
+            } else if (!population[neighborID].isPresent) {
+                continue;
             }
+
             if (population[neighborID].state == 1)
                 neighborsAlive = neighborsAlive + 1;
         }
@@ -157,7 +165,12 @@ $(function () {
                 var idx = e.toElement.id.split("_").pop() - 1;
                 // console.log(idx);
                 // set the state to the opposite
-                population[idx].setState((population[idx].state + 1) % 2); //setFill(population[idx].colorOff);
+                if (e.shiftKey) {
+                    population[idx].isPresent = !population[idx].isPresent;
+                }
+                else {
+                    population[idx].setState((population[idx].state + 1) % 2);
+                }
             })
             .mouseenter(function (e) {
                 var idx = e.toElement.id.split("_").pop() - 1;
