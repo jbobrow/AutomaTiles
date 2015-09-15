@@ -67,6 +67,21 @@ var hoverEnd = function (idx) {
 };
 
 
+var invert = function (idx) {
+
+    var cell = population[idx];
+    for (var i = 0; i < cell.getNeighbors().length; i++) {
+        var neighborID = cell.neighbors[i];
+        if (neighborID < 0 || neighborID >= ROWS * COLS) {
+            continue;
+        } else if (!population[neighborID].isPresent) {
+            continue;
+        }
+
+        population[neighborID].state = (population[neighborID].state+1)%2;
+    }
+};
+
 // determine the next state for the population
 var simulate = function () {
 
@@ -167,6 +182,10 @@ $(function () {
                 // set the state to the opposite
                 if (e.shiftKey) {
                     population[idx].isPresent = !population[idx].isPresent;
+                }
+                else if (e.altKey) {
+                    population[idx].setState((population[idx].state + 1) % 2);
+                    invert(idx);
                 }
                 else {
                     population[idx].setState((population[idx].state + 1) % 2);
