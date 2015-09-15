@@ -154,10 +154,10 @@ var reset = function () {
 $(function () {
 
     two = new Two({
-        width: $(window).width(),
-        height: $(window).height(),
+        //width: $(window).width(),
+        //height: $(window).height(),
         //type: Two.Types.canvas, // set the type of renderer // note: canvas on click needs to be handled differently
-        fullscreen: false
+        fullscreen: true
     });
 
     two.appendTo(document.getElementById("two"));
