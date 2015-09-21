@@ -16,7 +16,7 @@
 #include "APA102C.h"
 
 
-volatile static int16_t holdoff = 10;//for temporarily preventing click outputs
+volatile static int16_t holdoff = 2000;//for temporarily preventing click outputs
 volatile static uint8_t click = 0;//becomes non-zero when a click is detected
 volatile static uint8_t state = 0;//current state of tile
 volatile static uint32_t timer = 0;//.1 ms timer tick
@@ -104,7 +104,6 @@ static void getStates(uint8_t * result){
 	cli();//Disable interrupts to safely grab consistent timer value
 	uint32_t curTime = timer;
 	uint32_t diffs[3];
-	sei();//Re-enable interrupts
 	for(uint8_t i = 0; i < 6; i++){
 		if((curTime-times[i][timeBuf[i]])>100){//More than .1 sec since last pulse, too long
 			result[i] = 0;
@@ -121,16 +120,17 @@ static void getStates(uint8_t * result){
 				diffs[1] >>= 3;
 				diffs[2] >>= 3;
 				//checking if any two of the differences are equal and using a value from the equal pair
-				if(diffs[0] == diffs[1] || diffs[0] == diffs[2]){
+				if(diffs[0] == diffs[1] && diffs[0] == diffs[2]){
 					result[i] = (uint8_t) diffs[0];
-				}else if(diffs[1] == diffs[2]){
-					result[i] = (uint8_t) diffs[1];
+				//}else if(diffs[1] == diffs[2]){
+				//	result[i] = (uint8_t) diffs[1];
 				}else{//too much variation
 					result[i] = 0;
 				}
 			}
 		}
-	}
+	}	
+	sei();//Re-enable interrupts
 }
 
 //Timer interrupt occurs every 1 ms
@@ -138,7 +138,7 @@ static void getStates(uint8_t * result){
 ISR(TIM0_COMPA_vect){
 	timer++;
 	
-	if(timer%(3*8*state+4)==5){ //State timings are off by 4 from a multiple of 8 to help with detection TODO: Currently sending state*3
+	if(timer%(8*state+4)==5){ //State timings are off by 4 from a multiple of 8 to help with detection TODO: Currently sending state*3
 		PORTA |= IR;
 	}else{
 		PORTA &= ~IR;
@@ -176,7 +176,7 @@ ISR(PCINT0_vect){
 //If a delta is very high compared to the median, a click is detected and click is set to non-0
 ISR(ADC_vect){
 	//Values saved for derivative calculation
-	static uint16_t median = 1<<10;
+	static uint16_t median = 1<<15;
 	static uint16_t medDelta = 1<<5;
 	
 	uint8_t adc;	
@@ -200,7 +200,7 @@ ISR(ADC_vect){
 	
 	//Update running delta median. Error on high side.
 	//note that due to comparison, the median is scaled up by 2^5=32
-	if((delta<<5)<medDelta && medDelta > 1){ 
+	if((delta<<4)<medDelta && medDelta > 1){ 
 		medDelta--;
 		}else{
 		medDelta++;
