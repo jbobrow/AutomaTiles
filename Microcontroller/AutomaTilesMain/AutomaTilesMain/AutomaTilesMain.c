@@ -53,7 +53,7 @@ int main(void)
 	setPort(&PORTB);
 	sendColor(LEDCLK,LEDDAT,colors[0]);
 	sei();
-	initAD();
+	//initAD();
 	initTimer();
 	//Set up timing ring buffers
 	for(uint8_t i = 0; i<6; i++){
@@ -165,14 +165,25 @@ ISR(TIM0_COMPA_vect){
 	}else{
 		PORTA &= ~IR;
 	}
+	if(holdoff>3){	
+		holdoff -= 3;
+	}
+	if(holdoff<=3){
+		holdoff = 0;
+	}
 }
 
 //INT0 interrupt triggered when the pushbutton is pressed
 ISR(INT0_vect){
-	if(holdoff==0){
-		state = !state;//simple setup for 2 state tile
+	if(PINB & BUTTON){
 		holdoff = 500;
+	}else{
+		if(holdoff==0){
+			state = !state;//simple setup for 2 state tile
+			holdoff = 500;
+		}
 	}
+	
 }
 
 //Pin Change 0 interrupt triggered when any of the phototransistors change level
@@ -240,7 +251,7 @@ ISR(ADC_vect){
 	
 	if(holdoff == 0){//holdoff can be set elsewhere to disable click being set for a period of time
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 32, an exceptional event is needed.
-			click = delta;//Board triggered click as soon as it could (double steps)
+			//click = delta;//Board triggered click as soon as it could (double steps)
 		}
 	}else{
 		holdoff--;

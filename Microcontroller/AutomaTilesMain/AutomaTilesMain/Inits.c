@@ -13,7 +13,7 @@ void initIO(){//Set up pin directions, pull up/downs, overrides, pin change inte
 	PORTA = 0x00; //No pull ups and IR LED is low
 	DDRB = LEDCLK|LEDDAT; //Set LED signals as outputs
 	PORTB = BUTTON; //Apply pull up to button, reset is pulled up by default
-	MCUCR|=(1<<ISC01)|(0<<ISC00);//Button interrupt is triggered on a falling edge
+	MCUCR|=(0<<ISC01)|(1<<ISC00);//Button interrupt is triggered on any edge
 	PCMSK0 = 0x3F; //mask out only the phototransistors for the pin change interrupt
 	GIMSK = (1<<INT0)|(0<<PCIE1)|(1<<PCIE0);//Enable INT0 interrupt for the button and Pin change interrupts for the phototransistors
 	PRR = (1<<PRTIM1)|(1<<PRUSI);//Disable unused modules
