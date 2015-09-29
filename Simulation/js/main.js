@@ -195,6 +195,36 @@ var reset = function () {
     }
 };
 
+// reset the board to all off state
+var makeAllPresent = function () {
+    // update all cells to their next state
+    for (var i = 0; i < ROWS * COLS; i++) {
+        var cell = population[i];
+        cell.isPresent = true;
+    }
+};
+
+// reset the board to all off state
+var makeAllNotPresent = function () {
+    // update all cells to their next state
+    for (var i = 0; i < ROWS * COLS; i++) {
+        var cell = population[i];
+        cell.isPresent = false;
+    }
+};
+
+// reset the board to all off state
+var selectRandomTiles = function () {
+    // update all cells to their next state
+    for (var i = 0; i < ROWS * COLS; i++) {
+        var cell = population[i];
+        var state = Math.random()>0.5 ? 1 : 0;
+        cell.setState(state);
+        cell.setNextState(state);
+    }
+};
+
+
 // init checkboxes to ruleset
 var initRuleset = function() {
     // set birth rules

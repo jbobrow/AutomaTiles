@@ -36,6 +36,21 @@ function Settings() {
         var container = document.querySelector('#two');
         window.open('data:image/svg+xml,' + container.innerHTML);
     }
+
+    this.allPresent = function () {
+        // make all tiles present
+        makeAllPresent();
+    };
+
+    this.allNotPresent = function () {
+        // make all tiles not present
+        makeAllNotPresent();
+    };
+
+    this.randomSelect = function () {
+        // make all tiles not present
+        selectRandomTiles();
+    };
 }
 
 /* visible control panel */
@@ -69,6 +84,12 @@ var color_neighbor_on_control = f2.addColor(settings, 'color_neighbor_on');
 var color_hover_off_control = f2.addColor(settings, 'color_hover_off');
 var color_neighbor_off_control = f2.addColor(settings, 'color_neighbor_off');
 f2.closed = true;
+
+var f3 = gui.addFolder('advanced');
+f3.add(settings, 'allPresent');
+f3.add(settings, 'allNotPresent');
+f3.add(settings, 'randomSelect');
+f3.closed = true;
 
 //gui.add(settings, 'save');
 
