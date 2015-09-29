@@ -16,8 +16,9 @@
 #include "APA102C.h"
 
 
-volatile static int16_t holdoff = 10;//for temporarily preventing click outputs
+volatile static int16_t holdoff = 2000;//for temporarily preventing click outputs
 volatile static uint8_t click = 0;//becomes non-zero when a click is detected
+volatile static uint8_t sync = 0;//becomes non-zero when synchronization pulses need to be sent out
 volatile static uint8_t state = 0;//current state of tile
 volatile static uint32_t timer = 0;//.1 ms timer tick
 volatile static uint32_t times[6][4];//ring buffer for holding leading  detection edge times for the phototransistors
@@ -66,6 +67,9 @@ int main(void)
 			uint8_t states[6];
 			getStates(states);
 			uint8_t numOn = 0;
+			
+			sync = 2;//request sync pulse be sent at next possible opportunity (set to 2 for logistical reasons)
+			
 			for (uint8_t i = 0; i< 6; i++)
 			{
 				//at the moments specific state detection is a bit iffy, 
@@ -104,7 +108,6 @@ static void getStates(uint8_t * result){
 	cli();//Disable interrupts to safely grab consistent timer value
 	uint32_t curTime = timer;
 	uint32_t diffs[3];
-	sei();//Re-enable interrupts
 	for(uint8_t i = 0; i < 6; i++){
 		if((curTime-times[i][timeBuf[i]])>100){//More than .1 sec since last pulse, too long
 			result[i] = 0;
@@ -130,16 +133,35 @@ static void getStates(uint8_t * result){
 				}
 			}
 		}
-	}
+	}	
+	sei();//Re-enable interrupts
 }
 
 //Timer interrupt occurs every 1 ms
 //Increments timer and controls IR LEDs to keep their timing consistent
 ISR(TIM0_COMPA_vect){
+	static uint8_t IRcount = 0;//Tracks cycles for accurate IR LED timing
+	static uint8_t sendState = 0;//State currently being sent. only updates on pulse to ensure accurate states are sent
 	timer++;
-	
-	if(timer%(3*8*state+4)==5){ //State timings are off by 4 from a multiple of 8 to help with detection TODO: Currently sending state*3
+	IRcount++;
+	if(IRcount>=(uint8_t)(sendState*8+4)){//State timings are off by 4 from a multiple of 8 to help with detection
+		IRcount = 0;
+		if(sync==0){
+			sendState = state;
+		}
+	}
+	if(IRcount==5){ 
 		PORTA |= IR;
+	}else if(IRcount==7&&sync>0){
+		PORTA |= IR;
+		sync = 0;
+	}else if(sendState==0&&sync>0){//0 case is special
+		if((IRcount&0x01)!=0){
+			PORTA |= IR;
+			sync -= 1;
+			}else{
+			PORTA &= ~IR;
+		}
 	}else{
 		PORTA &= ~IR;
 	}
@@ -161,9 +183,15 @@ ISR(PCINT0_vect){
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
 	for(uint8_t i = 0; i < 6; i++){
 		if(newOn & 1<<i){ //if an element is newly on, 
-			timeBuf[i]++;
-			timeBuf[i] &= 0x03;
-			times[i][timeBuf[i]] = timer;
+			if(timer-times[i][timeBuf[i]]<4){//This is a second, rapid pulse. treat like a click
+				if(holdoff==0){
+					click = 1;
+				}
+			}else{//Normally timed pulse, process normally
+				timeBuf[i]++;
+				timeBuf[i] &= 0x03;
+				times[i][timeBuf[i]] = timer;
+			}
 		}
 	}
 	
@@ -176,7 +204,7 @@ ISR(PCINT0_vect){
 //If a delta is very high compared to the median, a click is detected and click is set to non-0
 ISR(ADC_vect){
 	//Values saved for derivative calculation
-	static uint16_t median = 1<<10;
+	static uint16_t median = 1<<15;
 	static uint16_t medDelta = 1<<5;
 	
 	uint8_t adc;	
@@ -200,7 +228,7 @@ ISR(ADC_vect){
 	
 	//Update running delta median. Error on high side.
 	//note that due to comparison, the median is scaled up by 2^5=32
-	if((delta<<5)<medDelta && medDelta > 1){ 
+	if((delta<<4)<medDelta && medDelta > 1){ 
 		medDelta--;
 		}else{
 		medDelta++;
@@ -212,7 +240,7 @@ ISR(ADC_vect){
 	
 	if(holdoff == 0){//holdoff can be set elsewhere to disable click being set for a period of time
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 32, an exceptional event is needed.
-			click = delta;
+			click = delta;//Board triggered click as soon as it could (double steps)
 		}
 	}else{
 		holdoff--;
