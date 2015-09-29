@@ -6,6 +6,8 @@ var COLS = 15;
 
 var prevStepTime = 0;
 
+var birthRules = [false, false, false, true, false, false, false, false, false];
+var deathRules = [true, true, false, false, true, true, true, true, true];
 
 // reshape the population
 var makeTri = function () {
@@ -105,13 +107,12 @@ var simulate = function () {
         }
 
         // enfore the rules
-        if (neighborsAlive == 3) {
-            //if(populationBuffer)
+        if (doBirthAutomaTile(neighborsAlive, population[i].state)) {
             // birth
             // console.log("birth cell");
             population[i].setNextState(1);
         }
-        else if (neighborsAlive >= 2 && neighborsAlive <= 3) {
+        else if (doKeepAliveAutomaTile(neighborsAlive, population[i].state)) {
             // live
             // console.log("keep this cell alive");
             population[i].setNextState(1);
@@ -139,6 +140,51 @@ var simulate = function () {
     // Only if it has 3 neighbours
 };
 
+var doBirthAutomaTile = function(neighbors, state) {
+    if(state == 0) {
+        if(birthRules[0] && neighbors == 0) return true;
+        if(birthRules[1] && neighbors == 1) return true;
+        if(birthRules[2] && neighbors == 2) return true;
+        if(birthRules[3] && neighbors == 3) return true;
+        if(birthRules[4] && neighbors == 4) return true;
+        if(birthRules[5] && neighbors == 5) return true;
+        if(birthRules[6] && neighbors == 6) return true;
+        if(birthRules[7] && neighbors == 7) return true;
+        if(birthRules[8] && neighbors == 8) return true;
+    }
+    return false;
+};
+
+var doKeepAliveAutomaTile = function(neighbors, state) {
+    if(state == 1) {
+        if(!deathRules[0] && neighbors == 0) return true;
+        if(!deathRules[1] && neighbors == 1) return true;
+        if(!deathRules[2] && neighbors == 2) return true;
+        if(!deathRules[3] && neighbors == 3) return true;
+        if(!deathRules[4] && neighbors == 4) return true;
+        if(!deathRules[5] && neighbors == 5) return true;
+        if(!deathRules[6] && neighbors == 6) return true;
+        if(!deathRules[7] && neighbors == 7) return true;
+        if(!deathRules[8] && neighbors == 8) return true;
+    }
+    return false;
+};
+
+var doKillAutomaTile = function(neighbors, state) {
+    if(state == 1) {
+        if(deathRules[0] && neighbors == 0) return true;
+        if(deathRules[1] && neighbors == 1) return true;
+        if(deathRules[2] && neighbors == 2) return true;
+        if(deathRules[3] && neighbors == 3) return true;
+        if(deathRules[4] && neighbors == 4) return true;
+        if(deathRules[5] && neighbors == 5) return true;
+        if(deathRules[6] && neighbors == 6) return true;
+        if(deathRules[7] && neighbors == 7) return true;
+        if(deathRules[8] && neighbors == 8) return true;
+    }
+    return false;
+};
+
 // reset the board to all off state
 var reset = function () {
     // update all cells to their next state
@@ -149,9 +195,60 @@ var reset = function () {
     }
 };
 
+// init checkboxes to ruleset
+var initRuleset = function() {
+    // set birth rules
+    document.getElementById("birth_0").checked = birthRules[0];
+    document.getElementById("birth_1").checked = birthRules[1];
+    document.getElementById("birth_2").checked = birthRules[2];
+    document.getElementById("birth_3").checked = birthRules[3];
+    document.getElementById("birth_4").checked = birthRules[4];
+    document.getElementById("birth_5").checked = birthRules[5];
+    document.getElementById("birth_6").checked = birthRules[6];
+    document.getElementById("birth_7").checked = birthRules[7];
+    document.getElementById("birth_8").checked = birthRules[8];
+    // set death rules
+    document.getElementById("death_0").checked = deathRules[0];
+    document.getElementById("death_1").checked = deathRules[1];
+    document.getElementById("death_2").checked = deathRules[2];
+    document.getElementById("death_3").checked = deathRules[3];
+    document.getElementById("death_4").checked = deathRules[4];
+    document.getElementById("death_5").checked = deathRules[5];
+    document.getElementById("death_6").checked = deathRules[6];
+    document.getElementById("death_7").checked = deathRules[7];
+    document.getElementById("death_8").checked = deathRules[8];
+};
+
+
+// update ruleset
+var updateRuleset = function() {
+    // update birth rules
+    birthRules[0] = document.getElementById("birth_0").checked;
+    birthRules[1] = document.getElementById("birth_1").checked;
+    birthRules[2] = document.getElementById("birth_2").checked;
+    birthRules[3] = document.getElementById("birth_3").checked;
+    birthRules[4] = document.getElementById("birth_4").checked;
+    birthRules[5] = document.getElementById("birth_5").checked;
+    birthRules[6] = document.getElementById("birth_6").checked;
+    birthRules[7] = document.getElementById("birth_7").checked;
+    birthRules[8] = document.getElementById("birth_8").checked;
+    // update death rules
+    deathRules[0] = document.getElementById("death_0").checked;
+    deathRules[1] = document.getElementById("death_1").checked;
+    deathRules[2] = document.getElementById("death_2").checked;
+    deathRules[3] = document.getElementById("death_3").checked;
+    deathRules[4] = document.getElementById("death_4").checked;
+    deathRules[5] = document.getElementById("death_5").checked;
+    deathRules[6] = document.getElementById("death_6").checked;
+    deathRules[7] = document.getElementById("death_7").checked;
+    deathRules[8] = document.getElementById("death_8").checked;
+};
 
 // Do this stuff on load (thanks jquery!)
 $(function () {
+
+    // init ruleset
+    initRuleset();
 
     two = new Two({
         //width: $(window).width(),

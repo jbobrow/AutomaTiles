@@ -8,6 +8,43 @@
 	z-index: 0;
 }
 
+#ruleset {
+	z-index: 100;
+	position: fixed;
+	top: 20px;
+	left: 20px;
+	padding: 10px;
+	border-radius: 5px;
+	background: rgba(0,0,0,0.9);
+	color: #ffffff;
+}
+
+#ruleset ul {
+	list-style: none;
+	padding: 5px 0 5px 0;
+}
+
+#ruleset li {
+	display: inline;
+}
+
+.rule_title {
+	color: #ffffff;
+	font-size: .8em;
+	display: block;
+	float: left;
+	width: 75px;
+	/*text-align: right;*/
+}
+
+.boxes {
+	display: block;
+	float: left;
+	width: 16px;
+	height: 16px;
+	margin: 2px;
+}
+
 #buttons {
 	visibility: hidden;
 	z-index: 1;

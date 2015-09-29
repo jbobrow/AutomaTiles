@@ -1,30 +1,73 @@
-
 <!doctype html>
 <html>
-  <head>
+<head>
     <title>AutomaTiles | Simulation</title>
     <meta charset="utf-8">
     <meta name="viewport" content="user-scalable=no">
     <!--<link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">-->
     <link rel="stylesheet" type="text/css" href="css/style.css">
-  </head>
-  <body>
-    <div id="two">
+</head>
+<body>
+<div id="two">
+</div>
+<div id="buttons">
+    <button onclick="makeTri()">triangle</button>
+    <button onclick="makeSquare()">square</button>
+    <button onclick="makeHex()">hexagon</button>
+</div>
+<div id="ruleset">
+    <div id="label">
+        <ul id=" birth_rules">
+            <li class="rule_title">neighbors:</li>
+            <li class="boxes">0</li>
+            <li class="boxes">1</li>
+            <li class="boxes">2</li>
+            <li class="boxes">3</li>
+            <li class="boxes">4</li>
+            <li class="boxes">5</li>
+            <li class="boxes">6</li>
+            <li class="boxes">7</li>
+            <li class="boxes">8</li>
+        </ul>
     </div>
-    <div id="buttons">
-      <button onclick="makeTri()">triangle</button>
-      <button onclick="makeSquare()">square</button>
-      <button onclick="makeHex()">hexagon</button>
+    <div id="birth">
+        <ul id=" birth_rules">
+            <li class="rule_title">birth:  </li>
+            <li><input type="checkbox" id="birth_0" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_1" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_2" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_3" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_4" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_5" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_6" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_7" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="birth_8" class="boxes" onchange="updateRuleset()"></li>
+        </ul>
     </div>
-    <div id="export">
-      <a id="save" class="myButton" download="automatiles.svg" href="#">save</a>
+    <div id="death">
+        <ul id="death_rules">
+            <li class="rule_title">death: </li>
+            <li><input type="checkbox" id="death_0" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_1" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_2" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_3" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_4" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_5" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_6" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_7" class="boxes" onchange="updateRuleset()"></li>
+            <li><input type="checkbox" id="death_8" class="boxes" onchange="updateRuleset()"></li>
+        </ul>
     </div>
-    <script src="js/jquery.js"></script>
-    <script src="js/two.js"></script>
-    <script src="js/dat.gui.js"></script>
-    <script src="js/control.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/cell.js"></script>
-    <script src="js/save.js"></script>
-  </body>
+</div>
+<div id="export">
+    <a id="save" class="myButton" download="automatiles.svg" href="#">save</a>
+</div>
+<script src="js/jquery.js"></script>
+<script src="js/two.js"></script>
+<script src="js/dat.gui.js"></script>
+<script src="js/control.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cell.js"></script>
+<script src="js/save.js"></script>
+</body>
 </html>
