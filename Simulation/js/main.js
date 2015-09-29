@@ -6,7 +6,7 @@ var COLS = 15;
 
 var prevStepTime = 0;
 
-var birthRules = [false, false, false, true, false, false, false, false, false];
+var birthRules = [false, false, true, true, false, false, false, false, false];
 var deathRules = [true, true, false, false, true, true, true, true, true];
 
 // reshape the population
