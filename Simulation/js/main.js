@@ -213,7 +213,7 @@ var makeAllNotPresent = function () {
     }
 };
 
-// reset the board to all off state
+// give each tile a 50% chance of being on
 var selectRandomTiles = function () {
     // update all cells to their next state
     for (var i = 0; i < ROWS * COLS; i++) {
