@@ -3,6 +3,7 @@ var settings = new Settings();
 function Settings() {
     this.duration = 120;
     this.side_length = 20;
+    this.stroke_width = 4;
 
     this.color_state_on = '#ff0000';
     this.color_state_off = '#333333';
@@ -68,6 +69,7 @@ gui.add(settings, 'reset');
 var f0 = gui.addFolder('form');
 var shape_control = f0.add(settings, 'shape', ['triangle', 'square', 'hexagon']);
 var side_length_control = f0.add(settings, 'side_length', 2, 200).step(1);
+var stroke_width_control = f0.add(settings, 'stroke_width', 0, 10).step(1);
 f0.closed = true;
 
 var f1 = gui.addFolder('color');
@@ -119,6 +121,12 @@ color_stroke_control.onChange(function () {
 side_length_control.onChange(function () {
     for (var i = 0; i < ROWS * COLS; i++) {
         population[i].setSideLength(settings.side_length);
+    }
+});
+
+stroke_width_control.onChange(function () {
+    for (var i = 0; i < ROWS * COLS; i++) {
+        population[i].setStrokeWidth(settings.stroke_width);
     }
 });
 

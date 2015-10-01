@@ -32,7 +32,7 @@ Cell = function (i) {
     ];
     this.shape = two.makePolygon(points);
     this.shape.stroke = settings.color_stroke;
-    this.shape.linewidth = 4;
+    this.shape.linewidth = settings.stroke_width;
     this.shape.fill = this.colorOff;
 
     this.targetVertices = [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}];
@@ -74,6 +74,10 @@ Cell.prototype = {
     setSideLength: function (side_length) {
         this.side = side_length;
         this.setShape(this.currentShape);
+    },
+
+    setStrokeWidth: function (stroke_width) {
+        this.shape.linewidth = stroke_width;
     },
 
     setShape: function (shape) {
