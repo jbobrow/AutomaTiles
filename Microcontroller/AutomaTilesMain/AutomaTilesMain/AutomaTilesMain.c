@@ -23,6 +23,8 @@ volatile static uint8_t state = 0;//current state of tile
 volatile static uint32_t timer = 0;//.1 ms timer tick
 volatile static uint32_t times[6][4];//ring buffer for holding leading  detection edge times for the phototransistors
 volatile static uint8_t timeBuf[6];//ring buffer indices
+volatile static uint8_t mode = 0;//0 = normal operation, 1 = receiving programming, 2 = transmitting programming
+volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
 
 const uint8_t colors[][3] = 
 {	//0:black
@@ -62,36 +64,59 @@ int main(void)
 	
 	
     while(1)
-    {
-		if(click){
-			uint8_t states[6];
-			getStates(states);
-			uint8_t numOn = 0;
+    {	
+		if(mode==0){
+			if(click){
+				uint8_t states[6];
+				getStates(states);
+				uint8_t numOn = 0;
 			
-			sync = 2;//request sync pulse be sent at next possible opportunity (set to 2 for logistical reasons)
+				sync = 2;//request sync pulse be sent at next possible opportunity (set to 2 for logistical reasons)
 			
-			for (uint8_t i = 0; i< 6; i++)
-			{
-				//at the moments specific state detection is a bit iffy, 
-				//so mapping any received state>1 to a state of 1 works for now
-				if(states[i]>0){
-					numOn++;
-				}	
+				for (uint8_t i = 0; i< 6; i++)
+				{
+					//at the moments specific state detection is a bit iffy, 
+					//so mapping any received state>1 to a state of 1 works for now
+					if(states[i]>0){
+						numOn++;
+					}	
+				}
+				//Logic for what to do to the state based on number of on neighbors
+				if(numOn != 1){
+					state = !state;
+				}
+				//End logic
+			
+				//prevent another click from being detected for a bit
+				holdoff = 500;
+				click = 0;
 			}
-			//Logic for what to do to the state based on number of on neighbors
-			if(numOn != 1){
-				state = !state;
-			}
-			//End logic
-			
-			//prevent another click from being detected for a bit
-			holdoff = 500;
-			click = 0;
-		}
 		
-		//periodically update LED once every 0x3F = 64 ms (fast enough to feel responsive)
-		if(!(timer & 0x3F)){
-			sendColor(LEDCLK, LEDDAT, colors[state]);
+			//periodically update LED once every 0x3F = 64 ms (fast enough to feel responsive)
+			if(!(timer & 0x3F)){
+				sendColor(LEDCLK, LEDDAT, colors[state]);
+			}
+		}else if(mode==1){
+			//disable A/D
+			
+			//set photo transistor interrupt to only trigger on specific direction
+			
+			//record time entering the mode for timeout
+			uint32_t modeStart = timer;
+			while(mode==1){//stay in this mode until instructed to leave or timeout
+				if(!(timer & 0x3F)){
+					sendColor(LEDCLK, LEDDAT, colors[12]);					
+				}
+				if(timer-modeStart>5000){//been in mode 1 for more than 5 seconds
+					mode = 0;
+					//re-enable A/D
+					//re-enable all phototransistors
+				}
+			}
+		}else if(mode==2){
+			if(!(timer & 0x3F)){
+				sendColor(LEDCLK, LEDDAT, colors[4]);
+			}
 		}
 	}
 }
@@ -143,33 +168,35 @@ ISR(TIM0_COMPA_vect){
 	static uint8_t IRcount = 0;//Tracks cycles for accurate IR LED timing
 	static uint8_t sendState = 0;//State currently being sent. only updates on pulse to ensure accurate states are sent
 	timer++;
-	IRcount++;
-	if(IRcount>=(uint8_t)(sendState*8+4)){//State timings are off by 4 from a multiple of 8 to help with detection
-		IRcount = 0;
-		if(sync==0){
-			sendState = state;
+	if(mode==0){
+		IRcount++;
+		if(IRcount>=(uint8_t)(sendState*8+4)){//State timings are off by 4 from a multiple of 8 to help with detection
+			IRcount = 0;
+			if(sync==0){
+				sendState = state;
+			}
 		}
-	}
-	if(IRcount==5){ 
-		PORTA |= IR;
-	}else if(IRcount==7&&sync>0){
-		PORTA |= IR;
-		sync = 0;
-	}else if(sendState==0&&sync>0){//0 case is special
-		if((IRcount&0x01)!=0){
+		if(IRcount==5){ 
 			PORTA |= IR;
-			sync -= 1;
+		}else if(IRcount==7&&sync>0){
+			PORTA |= IR;
+			sync = 0;
+		}else if(sendState==0&&sync>0){//0 case is special
+			if((IRcount&0x01)!=0){
+				PORTA |= IR;
+				sync -= 1;
 			}else{
+				PORTA &= ~IR;
+			}
+		}else{
 			PORTA &= ~IR;
 		}
-	}else{
-		PORTA &= ~IR;
-	}
-	if(holdoff>3){	
-		holdoff -= 3;
-	}
-	if(holdoff<=3){
-		holdoff = 0;
+		if(holdoff>3){	
+			holdoff -= 3;
+		}
+		if(holdoff<=3){
+			holdoff = 0;
+		}
 	}
 }
 
@@ -192,20 +219,25 @@ ISR(PCINT0_vect){
 	static uint8_t prevVals = 0; //stores the previous state so that only what pins are newly on are checked
 	uint8_t vals = PINA & 0x3f; //mask out phototransistors
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
-	for(uint8_t i = 0; i < 6; i++){
-		if(newOn & 1<<i){ //if an element is newly on, 
-			if(timer-times[i][timeBuf[i]]<4){//This is a second, rapid pulse. treat like a click
-				if(holdoff==0){
-					click = 1;
+	if(mode==0){
+		for(uint8_t i = 0; i < 6; i++){
+			if(newOn & 1<<i){ //if an element is newly on, 
+				if(timer-times[i][timeBuf[i]]<4){//This is a second, rapid pulse. treat like a click
+					if(timer-times[i][timeBuf[(i+1)&0x03]]<12){//There have been 4 pulses in less than 12 ms. Enter programming mode.
+						mode = 1;
+						progDir = i;
+					}
+					if(holdoff==0){
+						click = 1;
+					}
+				}else{//Normally timed pulse, process normally
+					timeBuf[i]++;
+					timeBuf[i] &= 0x03;
+					times[i][timeBuf[i]] = timer;
 				}
-			}else{//Normally timed pulse, process normally
-				timeBuf[i]++;
-				timeBuf[i] &= 0x03;
-				times[i][timeBuf[i]] = timer;
 			}
 		}
 	}
-	
 	prevVals = vals;
 }
 
