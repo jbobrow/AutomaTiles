@@ -1,0 +1,9 @@
+{
+  "name": "pacemaker",
+  "version": "0.0.1",
+  "isActive": true,
+  "heartbeats": {
+    "outgoing": 120,
+    "incoming": 0
+  }
+}
