@@ -61,7 +61,7 @@ gui.add(settings, 'step');
 
 var autoplay_control = gui.add(settings, 'autoplay').listen();
 
-var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
+var freq_control = gui.add(settings, 'frequency', 1, 20).step(1).listen();
 
 gui.add(settings, 'reset');
 

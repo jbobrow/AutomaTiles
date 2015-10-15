@@ -360,9 +360,18 @@ $(function () {
 
 // handle keypress
 $(document).keydown(function (e) {
-    console.log(e.which);
+    //console.log(e.which);
+
     if (e.which === 32) {    // spacebar pressed
         settings.autoplay = !settings.autoplay;
+    }
+    else if (e.which === 38) {  // up arrow
+        if(settings.frequency < 20)
+            settings.frequency++;
+    }
+    else if (e.which === 40) {  // down arrow
+        if(settings.frequency > 1)
+            settings.frequency--;
     }
     else if (e.which === 72) {    // 'h' or 'H' is pressed
         isRulesetHidden = !isRulesetHidden;
