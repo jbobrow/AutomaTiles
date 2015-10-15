@@ -113,6 +113,8 @@ color_state_off_control.onChange(function () {
 color_stroke_control.onChange(function () {
     // update background
     document.getElementById("two").style.background = settings.color_stroke;
+    document.body.style.background = settings.color_stroke;
+
     for (var i = 0; i < ROWS * COLS; i++) {
         population[i].setStroke(settings.color_stroke);
     }

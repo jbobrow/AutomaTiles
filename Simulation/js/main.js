@@ -356,3 +356,11 @@ $(function () {
     });
 
 });
+
+// handle keypress
+$(document).keydown(function (e) {
+    console.log(e.which);
+    if(e.which === 32) {    // spacebar pressed
+        settings.autoplay = !settings.autoplay;
+    }
+});
