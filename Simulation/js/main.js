@@ -1,5 +1,6 @@
 var two;
 var population = [];
+var isRulesetHidden = false;
 
 var ROWS = 30;
 var COLS = 15;
@@ -35,7 +36,7 @@ var hoverBegin = function (idx) {
     population[idx].isHover = true;
 
     // show the neighbors
-    if(settings.showNeighbors) {
+    if (settings.showNeighbors) {
         for (var i = 0; i < population[idx].getNeighbors().length; i++) {
             var cell = population[idx];
             var neighborID = cell.neighbors[i];
@@ -55,7 +56,7 @@ var hoverEnd = function (idx) {
     population[idx].isHover = false;
 
     // show the neighbors
-    if(settings.showNeighbors) {
+    if (settings.showNeighbors) {
         for (var i = 0; i < population[idx].getNeighbors().length; i++) {
             var cell = population[idx];
             var neighborID = cell.neighbors[i];
@@ -80,7 +81,7 @@ var invert = function (idx) {
             continue;
         }
 
-        population[neighborID].state = (population[neighborID].state+1)%2;
+        population[neighborID].state = (population[neighborID].state + 1) % 2;
     }
 };
 
@@ -140,47 +141,47 @@ var simulate = function () {
     // Only if it has 3 neighbours
 };
 
-var doBirthAutomaTile = function(neighbors, state) {
-    if(state == 0) {
-        if(birthRules[0] && neighbors == 0) return true;
-        if(birthRules[1] && neighbors == 1) return true;
-        if(birthRules[2] && neighbors == 2) return true;
-        if(birthRules[3] && neighbors == 3) return true;
-        if(birthRules[4] && neighbors == 4) return true;
-        if(birthRules[5] && neighbors == 5) return true;
-        if(birthRules[6] && neighbors == 6) return true;
-        if(birthRules[7] && neighbors == 7) return true;
-        if(birthRules[8] && neighbors == 8) return true;
+var doBirthAutomaTile = function (neighbors, state) {
+    if (state == 0) {
+        if (birthRules[0] && neighbors == 0) return true;
+        if (birthRules[1] && neighbors == 1) return true;
+        if (birthRules[2] && neighbors == 2) return true;
+        if (birthRules[3] && neighbors == 3) return true;
+        if (birthRules[4] && neighbors == 4) return true;
+        if (birthRules[5] && neighbors == 5) return true;
+        if (birthRules[6] && neighbors == 6) return true;
+        if (birthRules[7] && neighbors == 7) return true;
+        if (birthRules[8] && neighbors == 8) return true;
     }
     return false;
 };
 
-var doKeepAliveAutomaTile = function(neighbors, state) {
-    if(state == 1) {
-        if(!deathRules[0] && neighbors == 0) return true;
-        if(!deathRules[1] && neighbors == 1) return true;
-        if(!deathRules[2] && neighbors == 2) return true;
-        if(!deathRules[3] && neighbors == 3) return true;
-        if(!deathRules[4] && neighbors == 4) return true;
-        if(!deathRules[5] && neighbors == 5) return true;
-        if(!deathRules[6] && neighbors == 6) return true;
-        if(!deathRules[7] && neighbors == 7) return true;
-        if(!deathRules[8] && neighbors == 8) return true;
+var doKeepAliveAutomaTile = function (neighbors, state) {
+    if (state == 1) {
+        if (!deathRules[0] && neighbors == 0) return true;
+        if (!deathRules[1] && neighbors == 1) return true;
+        if (!deathRules[2] && neighbors == 2) return true;
+        if (!deathRules[3] && neighbors == 3) return true;
+        if (!deathRules[4] && neighbors == 4) return true;
+        if (!deathRules[5] && neighbors == 5) return true;
+        if (!deathRules[6] && neighbors == 6) return true;
+        if (!deathRules[7] && neighbors == 7) return true;
+        if (!deathRules[8] && neighbors == 8) return true;
     }
     return false;
 };
 
-var doKillAutomaTile = function(neighbors, state) {
-    if(state == 1) {
-        if(deathRules[0] && neighbors == 0) return true;
-        if(deathRules[1] && neighbors == 1) return true;
-        if(deathRules[2] && neighbors == 2) return true;
-        if(deathRules[3] && neighbors == 3) return true;
-        if(deathRules[4] && neighbors == 4) return true;
-        if(deathRules[5] && neighbors == 5) return true;
-        if(deathRules[6] && neighbors == 6) return true;
-        if(deathRules[7] && neighbors == 7) return true;
-        if(deathRules[8] && neighbors == 8) return true;
+var doKillAutomaTile = function (neighbors, state) {
+    if (state == 1) {
+        if (deathRules[0] && neighbors == 0) return true;
+        if (deathRules[1] && neighbors == 1) return true;
+        if (deathRules[2] && neighbors == 2) return true;
+        if (deathRules[3] && neighbors == 3) return true;
+        if (deathRules[4] && neighbors == 4) return true;
+        if (deathRules[5] && neighbors == 5) return true;
+        if (deathRules[6] && neighbors == 6) return true;
+        if (deathRules[7] && neighbors == 7) return true;
+        if (deathRules[8] && neighbors == 8) return true;
     }
     return false;
 };
@@ -218,7 +219,7 @@ var selectRandomTiles = function () {
     // update all cells to their next state
     for (var i = 0; i < ROWS * COLS; i++) {
         var cell = population[i];
-        var state = Math.random()>0.5 ? 1 : 0;
+        var state = Math.random() > 0.5 ? 1 : 0;
         cell.setState(state);
         cell.setNextState(state);
     }
@@ -226,7 +227,7 @@ var selectRandomTiles = function () {
 
 
 // init checkboxes to ruleset
-var initRuleset = function() {
+var initRuleset = function () {
     // set birth rules
     document.getElementById("birth_0").checked = birthRules[0];
     document.getElementById("birth_1").checked = birthRules[1];
@@ -251,7 +252,7 @@ var initRuleset = function() {
 
 
 // update ruleset
-var updateRuleset = function() {
+var updateRuleset = function () {
     // update birth rules
     birthRules[0] = document.getElementById("birth_0").checked;
     birthRules[1] = document.getElementById("birth_1").checked;
@@ -360,7 +361,15 @@ $(function () {
 // handle keypress
 $(document).keydown(function (e) {
     console.log(e.which);
-    if(e.which === 32) {    // spacebar pressed
+    if (e.which === 32) {    // spacebar pressed
         settings.autoplay = !settings.autoplay;
+    }
+    else if (e.which === 72) {    // 'h' or 'H' is pressed
+        isRulesetHidden = !isRulesetHidden;
+
+        if (isRulesetHidden)
+            document.getElementById("ruleset").style.display = 'none';
+        else
+            document.getElementById("ruleset").style.display = 'block';
     }
 });
