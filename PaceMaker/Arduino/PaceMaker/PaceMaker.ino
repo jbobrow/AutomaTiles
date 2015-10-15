@@ -1,7 +1,11 @@
 #include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+#include <WiFiClient.h>
+#include <WiFiServer.h>
+#include <WiFiUdp.h>
 #include <ArduinoJson.h>
 
-const char* ssid     = "MIT";  
+const char* ssid     = "MIT GUEST";  
 const char* password = "";
 
 const char* host     = "automatiles.com"; // Your domain  
