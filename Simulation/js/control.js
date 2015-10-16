@@ -61,7 +61,7 @@ gui.add(settings, 'step');
 
 var autoplay_control = gui.add(settings, 'autoplay').listen();
 
-var freq_control = gui.add(settings, 'frequency', 1, 20).step(1);
+var freq_control = gui.add(settings, 'frequency', 1, 20).step(1).listen();
 
 gui.add(settings, 'reset');
 
@@ -113,6 +113,8 @@ color_state_off_control.onChange(function () {
 color_stroke_control.onChange(function () {
     // update background
     document.getElementById("two").style.background = settings.color_stroke;
+    document.body.style.background = settings.color_stroke;
+
     for (var i = 0; i < ROWS * COLS; i++) {
         population[i].setStroke(settings.color_stroke);
     }
