@@ -96,7 +96,7 @@ int main(void)
 }
 
 /* Uses the current state of the times ring buffer to determine the states of neighboring tiles
- * For each side, to have a non-zero state, a pluse must have been recieved in the last 100 ms and two of the
+ * For each side, to have a non-zero state, a pulse must have been received in the last 100 ms and two of the
  * last three timing spaces must be equal.
  * 
  * State is communicated as a period for the pulses. Differences are calculated between pulses and if a consistent
@@ -150,15 +150,19 @@ ISR(TIM0_COMPA_vect){
 		}
 	}
 	if(IRcount==5){ 
+		DDRB |= IR;
 		PORTA |= IR;
 	}else if(IRcount==7&&sync>0){
+		DDRB |= IR;
 		PORTA |= IR;
 		sync = 0;
 	}else if(sendState==0&&sync>0){//0 case is special
 		if((IRcount&0x01)!=0){
+			DDRB |= IR;
 			PORTA |= IR;
 			sync -= 1;
 			}else{
+			DDRB &= ~IR;//Set direction in
 			PORTA &= ~IR;
 		}
 	}else{
@@ -176,10 +180,10 @@ ISR(TIM0_COMPA_vect){
 
 //INT0 interrupt triggered when the pushbutton is pressed
 ISR(INT0_vect){
-	if(holdoff==0){
-		state = !state;//simple setup for 2 state tile
-		holdoff = 500;
-	}
+//	if(holdoff==0){
+//		state = !state;//simple setup for 2 state tile
+//		holdoff = 500;
+//	}
 }
 
 //Pin Change 0 interrupt triggered when any of the phototransistors change level
@@ -246,7 +250,7 @@ ISR(ADC_vect){
 	}
 	
 	if(holdoff == 0){//holdoff can be set elsewhere to disable click being set for a period of time
-		if(medDelta < delta){//check for click. as the median delta is scaled up by 32, an exceptional event is needed.
+		if(medDelta*2 < delta){//check for click. as the median delta is scaled up by 32, an exceptional event is needed.
 			click = delta;//Board triggered click as soon as it could (double steps)
 		}
 	}else{
