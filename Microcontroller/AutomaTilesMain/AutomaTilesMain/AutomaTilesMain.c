@@ -60,7 +60,6 @@ int main(void)
 		timeBuf[i]=0;
 	}
 	
-	
     while(1)
     {
 		if(click){
@@ -163,9 +162,17 @@ ISR(TIM0_COMPA_vect){
 			PORTA &= ~IR;
 		}
 	}else{
-		PORTA &= ~IR;
+		DDRB &= ~IR;//Set direction in
+		PORTB &= ~IR;//Set pin tristated
+		if(PINB & BUTTON){//Button active high
+			if(holdoff==0){
+				state = !state;//simple setup for 2 state tile
+			}
+			holdoff = 500;//debounce and hold state until released
+		}
 	}
 }
+
 
 //INT0 interrupt triggered when the pushbutton is pressed
 ISR(INT0_vect){
