@@ -24,4 +24,6 @@
 #define MIC (1<<PA7)
 //Pushbutton pin
 #define BUTTON (1<<PB2)
+//Power control pin
+#define POWER (1<<PA6)
 #endif /* PINS_H_ */

@@ -9,8 +9,8 @@
 #include "Pins.h"
 
 void initIO(){//Set up pin directions, pull up/downs, overrides, pin change interrupts
-	DDRA = IR; //Set IR LED pin as output
-	PORTA = 0x00; //No pull ups
+	DDRA = POWER; //Set IR LED pin as output
+	PORTA = 0x00; //No pull ups and POWER is set low
 	DDRB = LEDCLK|LEDDAT; //Set LED signals as outputs
 	PORTB = 0x00; //No pull ups and IR LED is low
 	MCUCR|=(1<<ISC01)|(0<<ISC00);//Button interrupt is triggered on a falling edge

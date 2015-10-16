@@ -61,7 +61,7 @@ int main(void)
 	
     while(1)
     {
-		/*if(click){
+		if(click){
 			uint8_t states[6];
 			getStates(states);
 			uint8_t numOn = 0;
@@ -77,7 +77,7 @@ int main(void)
 			}
 			holdoff = 500;
 			click = 0;
-		}*/
+		}
 		
 		if(!(timer & 0x3F)){
 			sendColor(LEDCLK, LEDDAT, colors[state]);
@@ -164,7 +164,7 @@ ISR(PCINT0_vect){//Pin Change 0 interrupt triggered when any of the phototransis
 
 ISR(ADC_vect){
 	//Values saved for derivative calculation
-	static uint16_t median = 1<<10;
+	static uint16_t median = 1<<15;
 	static uint16_t medDelta = 1<<5;
 	
 	uint8_t adc;	
