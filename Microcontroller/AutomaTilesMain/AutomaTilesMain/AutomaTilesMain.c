@@ -150,29 +150,32 @@ ISR(TIM0_COMPA_vect){
 		}
 	}
 	if(IRcount==5){ 
+		PORTB |= IR;
 		DDRB |= IR;
-		PORTA |= IR;
 	}else if(IRcount==7&&sync>0){
-		DDRB |= IR;
-		PORTA |= IR;
+		PORTB |= IR;
+		DDRB |= IR;		
 		sync = 0;
 	}else if(sendState==0&&sync>0){//0 case is special
 		if((IRcount&0x01)!=0){
-			DDRB |= IR;
-			PORTA |= IR;
+			PORTB |= IR;
+			DDRB |= IR;			
 			sync -= 1;
 			}else{
 			DDRB &= ~IR;//Set direction in
-			PORTA &= ~IR;
+			PORTB &= ~IR;
 		}
 	}else{
 		DDRB &= ~IR;//Set direction in
 		PORTB &= ~IR;//Set pin tristated
-		if(PINB & BUTTON){//Button active high
-			if(holdoff==0){
-				state = !state;//simple setup for 2 state tile
+		
+		if(IRcount<5){
+			if(PINB & BUTTON){//Button active high
+				if(holdoff==0){
+					state = !state;//simple setup for 2 state tile
+				}
+				holdoff = 500;//debounce and hold state until released
 			}
-			holdoff = 500;//debounce and hold state until released
 		}
 	}
 }
@@ -238,8 +241,8 @@ ISR(ADC_vect){
 	}
 	
 	//Update running delta median. Error on high side.
-	//note that due to comparison, the median is scaled up by 2^5=32
-	if((delta<<4)<medDelta && medDelta > 1){ 
+	//note that due to comparison, the median is scaled up by 2^4=16
+	if((delta<<4)<medDelta && medDelta > 10){ 
 		medDelta--;
 		}else{
 		medDelta++;
@@ -250,7 +253,7 @@ ISR(ADC_vect){
 	}
 	
 	if(holdoff == 0){//holdoff can be set elsewhere to disable click being set for a period of time
-		if(medDelta*2 < delta){//check for click. as the median delta is scaled up by 32, an exceptional event is needed.
+		if(medDelta < delta){//check for click. as the median delta is scaled up by 16, an exceptional event is needed.
 			click = delta;//Board triggered click as soon as it could (double steps)
 		}
 	}else{
