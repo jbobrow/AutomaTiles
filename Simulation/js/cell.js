@@ -304,9 +304,14 @@ Cell.prototype = {
         // console.log("actual position x: " + this.position.x);
 
         if (Math.abs(this.targetPosition.x - this.position.x) > 0.5 || Math.abs(this.targetPosition.y - this.position.y) > 0.5) {
-            this.position.x = this.position.x + EASEVAL * (this.targetPosition.x - this.position.x);
-            this.position.y = this.position.y + EASEVAL * (this.targetPosition.y - this.position.y);
-
+            if (settings.isAnimated) {
+                this.position.x = this.position.x + EASEVAL * (this.targetPosition.x - this.position.x);
+                this.position.y = this.position.y + EASEVAL * (this.targetPosition.y - this.position.y);
+            }
+            else {
+                this.position.x = this.targetPosition.x;
+                this.position.y = this.targetPosition.y;
+            }
             this.shape.translation.set(this.position.x, this.position.y);
         }
         else if (Math.abs(this.targetPosition.x - this.position.x) > 0.0 || Math.abs(this.targetPosition.y - this.position.y) > 0.0) {
@@ -318,15 +323,29 @@ Cell.prototype = {
 
         // update the position of vertices
         for (var i = 0; i < 6; i++) {
-            if (Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > 0.5)
-                this.shape.vertices[i].x = this.shape.vertices[i].x + EASEVAL * (this.targetVertices[i].x - this.shape.vertices[i].x);
-            else if (Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > 0.0)
+            if (Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > 0.5) {
+                if (settings.isAnimated) {
+                    this.shape.vertices[i].x = this.shape.vertices[i].x + EASEVAL * (this.targetVertices[i].x - this.shape.vertices[i].x);
+                }
+                else {
+                    this.shape.vertices[i].x = this.targetVertices[i].x;
+                }
+            }
+            else if (Math.abs(this.targetVertices[i].x - this.shape.vertices[i].x) > 0.0) {
                 this.shape.vertices[i].x = this.targetVertices[i].x;
+            }
 
-            if (Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.5)
-                this.shape.vertices[i].y = this.shape.vertices[i].y + EASEVAL * (this.targetVertices[i].y - this.shape.vertices[i].y);
-            else if (Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.0)
+            if (Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.5) {
+                if (settings.isAnimated) {
+                    this.shape.vertices[i].y = this.shape.vertices[i].y + EASEVAL * (this.targetVertices[i].y - this.shape.vertices[i].y);
+                }
+                else {
+                    this.shape.vertices[i].y = this.targetVertices[i].y;
+                }
+            }
+            else if (Math.abs(this.targetVertices[i].y - this.shape.vertices[i].y) > 0.0) {
                 this.shape.vertices[i].y = this.targetVertices[i].y;
+            }
         }
 
         // update state of on or off in simulation

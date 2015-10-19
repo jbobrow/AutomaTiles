@@ -22,6 +22,8 @@ function Settings() {
 
     this.autoplay = false;
 
+    this.isAnimated = true;
+
     this.step = function () {
         //step forward in game of life
         //step();
@@ -68,6 +70,7 @@ gui.add(settings, 'reset');
 // place a dropdown here for shapes
 var f0 = gui.addFolder('form');
 var shape_control = f0.add(settings, 'shape', ['triangle', 'square', 'hexagon']);
+var animate_control = f0.add(settings, 'isAnimated');
 var side_length_control = f0.add(settings, 'side_length', 2, 200).step(1);
 var stroke_width_control = f0.add(settings, 'stroke_width', 0, 10).step(1);
 f0.closed = true;
