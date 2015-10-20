@@ -23,8 +23,9 @@ volatile static uint8_t state = 0;//current state of tile
 volatile static uint32_t timer = 0;//.1 ms timer tick
 volatile static uint32_t times[6][4];//ring buffer for holding leading  detection edge times for the phototransistors
 volatile static uint8_t timeBuf[6];//ring buffer indices
-volatile static uint8_t mode = 0;//0 = normal operation, 1 = receiving programming, 2 = transmitting programming
 volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
+volatile static uint8_t comBuf[64];//buffer for holding communicated messages when programming rules (oversized)
+volatile static uint16_t bitsRcvd = 0;//tracking number of bits received for retransmission/avoiding overflow
 
 const uint8_t colors[][3] = 
 {	//0:black
@@ -45,6 +46,14 @@ const uint8_t colors[][3] =
 	{0x00,0xFF,0x00},
 	{0x55,0xAA,0x00}
 };
+
+enum MODE
+{
+	sleep,
+	running,
+	recieving,
+	transmitting
+} mode;
 	
 static void getStates(uint8_t * result);
 
@@ -55,7 +64,7 @@ int main(void)
 	setPort(&PORTB);
 	sendColor(LEDCLK,LEDDAT,colors[0]);
 	sei();
-	//initAD();
+	initAD();
 	initTimer();
 	//Set up timing ring buffers
 	for(uint8_t i = 0; i<6; i++){
@@ -64,7 +73,7 @@ int main(void)
 	
     while(1)
     {	
-		if(mode==0){
+		if(mode==running){
 			if(click){
 				uint8_t states[6];
 				getStates(states);
@@ -96,24 +105,24 @@ int main(void)
 			if(!(timer & 0x3F)){
 				sendColor(LEDCLK, LEDDAT, colors[state]);
 			}
-		}else if(mode==1){
+		}else if(mode==recieving){
 			//disable A/D
 			
 			//set photo transistor interrupt to only trigger on specific direction
 			
 			//record time entering the mode for timeout
 			uint32_t modeStart = timer;
-			while(mode==1){//stay in this mode until instructed to leave or timeout
+			while(mode==recieving){//stay in this mode until instructed to leave or timeout
 				if(!(timer & 0x3F)){
 					sendColor(LEDCLK, LEDDAT, colors[12]);					
 				}
 				if(timer-modeStart>5000){//been in mode 1 for more than 5 seconds
-					mode = 0;
+					mode = running;
 					//re-enable A/D
 					//re-enable all phototransistors
 				}
 			}
-		}else if(mode==2){
+		}else if(mode==transmitting){
 			if(!(timer & 0x3F)){
 				sendColor(LEDCLK, LEDDAT, colors[4]);
 			}
@@ -168,7 +177,7 @@ ISR(TIM0_COMPA_vect){
 	static uint8_t IRcount = 0;//Tracks cycles for accurate IR LED timing
 	static uint8_t sendState = 0;//State currently being sent. only updates on pulse to ensure accurate states are sent
 	timer++;
-	if(mode==0){
+	if(mode==running){
 		IRcount++;
 		if(IRcount>=(uint8_t)(sendState*8+4)){//State timings are off by 4 from a multiple of 8 to help with detection
 			IRcount = 0;
@@ -222,24 +231,47 @@ ISR(INT0_vect){
 //Checks what pins are newly on and updates their buffers with the current time
 ISR(PCINT0_vect){
 	static uint8_t prevVals = 0; //stores the previous state so that only what pins are newly on are checked
+	static uint8_t pulseCount[6]; //stores counted pulses for various actions
+	static uint32_t oldTime = 0; //stored the previous time for data transmission
 	uint8_t vals = PINA & 0x3f; //mask out phototransistors
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
-	if(mode==0){
+	if(mode==running){
 		for(uint8_t i = 0; i < 6; i++){
 			if(newOn & 1<<i){ //if an element is newly on, 
-				if(timer-times[i][timeBuf[i]]<4){//This is a second, rapid pulse. treat like a click
-					if(timer-times[i][timeBuf[(i+1)&0x03]]<12){//There have been 4 pulses in less than 12 ms. Enter programming mode.
-						mode = 1;
-						progDir = i;
-					}
+				if(timer-times[i][timeBuf[i]]<10){//This is a rapid pulse. treat like a click
 					if(holdoff==0){
-						click = 1;
+						if(pulseCount[i]==0){//no burst clicks
+							click = 1;
+						}
 					}
+					pulseCount[i]++;
+					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.							
+						mode = recieving;
+						progDir = i;
+					}					
 				}else{//Normally timed pulse, process normally
+					pulseCount[i]=0;
 					timeBuf[i]++;
 					timeBuf[i] &= 0x03;
 					times[i][timeBuf[i]] = timer;
 				}
+			}
+		}
+	}else if(mode==recieving){
+		if(!((prevVals^vals)&(1<<progDir))){//programming pin has changed
+			if(timer-oldTime > 3){//an edge we care about
+				if(timer-oldTime > 8){//first bit. use for sync
+					bitsRcvd = 0;
+					for(int i = 0; i < 64; i++){//zero out buffer
+						comBuf[i]=0;
+					}					
+				}
+				if(bitsRcvd<64*8){
+					uint8_t bit = (vals&(1<<progDir))!=0;
+					comBuf[bitsRcvd/8] |= bit<<bitsRcvd%8;
+					bitsRcvd++;
+				}
+				oldTime = timer;
 			}
 		}
 	}
