@@ -89,7 +89,7 @@ int main(void)
 			}
 			else {
 				if(deathRules[numOn]) {
-					++state%numStates;
+					state = (state + 1) % numStates;
 				}
 			}
 			
@@ -117,7 +117,7 @@ int main(void)
  * Each array contains 0 or 1 in each position to 
  * represent true or false if born or killed off with n neighbors
  */
-static void setRules(bool[7] br, bool[7] dr) {
+static void setRules(uint8_t* br, uint8_t* dr) {
 	birthRules[0] = br[0];
 	birthRules[1] = br[1];
 	birthRules[2] = br[2];
