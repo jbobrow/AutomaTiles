@@ -15,7 +15,6 @@
 #include "Inits.h"
 #include "APA102C.h"
 
-
 volatile static int16_t holdoff = 2000;//for temporarily preventing click outputs
 volatile static uint8_t click = 0;//becomes non-zero when a click is detected
 volatile static uint8_t sync = 0;//becomes non-zero when synchronization pulses need to be sent out
@@ -23,6 +22,11 @@ volatile static uint8_t state = 0;//current state of tile
 volatile static uint32_t timer = 0;//.1 ms timer tick
 volatile static uint32_t times[6][4];//ring buffer for holding leading  detection edge times for the phototransistors
 volatile static uint8_t timeBuf[6];//ring buffer indices
+
+// init to the default rulestate for automatiles
+volatile static uint8_t birthRules[7] = {0,0,1,1,0,0,0}; // if true, should be born
+volatile static uint8_t deathRules[7] = {1,1,0,0,1,1,1}; // if true, should die (gotta find a better metaphor, this is too sad)
+volatile static uint8_t numStates = 2; // sets the age of an automatile
 
 const uint8_t colors[][3] = 
 {	//0:black
@@ -63,8 +67,8 @@ int main(void)
     while(1)
     {
 		if(click){
-			uint8_t states[6];
-			getStates(states);
+			uint8_t neighborStates[6];
+			getStates(neighborStates);
 			uint8_t numOn = 0;
 			
 			sync = 3;//request sync pulse be sent at next possible opportunity (set to 2 for logistical reasons)
@@ -73,14 +77,28 @@ int main(void)
 			{
 				//at the moments specific state detection is a bit iffy, 
 				//so mapping any received state>1 to a state of 1 works for now
-				if(states[i]>0){
+				if(neighborStates[i]>0){
 					numOn++;
 				}	
 			}
 			//Logic for what to do to the state based on number of on neighbors
+			if(state == 0) {
+				if(birthRules[numOn]) {
+					state=1;
+				}
+			}
+			else {
+				if(deathRules[numOn]) {
+					++state%numStates;
+				}
+			}
+			
+			/*
+			// logic for remain with just one neighbor, change otherwise
 			if(numOn != 1){
 				state = !state;
 			}
+			*/
 			//End logic
 			
 			//prevent another click from being detected for a bit
@@ -93,6 +111,36 @@ int main(void)
 			sendColor(LEDCLK, LEDDAT, colors[state]);
 		}
 	}
+}
+
+/* Receives two arrays containing birth rules and death rules
+ * Each array contains 0 or 1 in each position to 
+ * represent true or false if born or killed off with n neighbors
+ */
+static void setRules(bool[7] br, bool[7] dr) {
+	birthRules[0] = br[0];
+	birthRules[1] = br[1];
+	birthRules[2] = br[2];
+	birthRules[3] = br[3];
+	birthRules[4] = br[4];
+	birthRules[5] = br[5];
+	birthRules[6] = br[6];
+	
+	deathRules[0] = dr[0];
+	deathRules[1] = dr[1];
+	deathRules[2] = dr[2];
+	deathRules[3] = dr[3];
+	deathRules[4] = dr[4];
+	deathRules[5] = dr[5];
+	deathRules[6] = dr[6];
+}
+
+/* Set the number of states each automatile will go through
+ * this is effectively an age... i.e. after this many die states, 
+ * it will actually die 
+ */
+static void setNumStates(uint8_t num) {
+	numStates = num;
 }
 
 /* Uses the current state of the times ring buffer to determine the states of neighboring tiles
