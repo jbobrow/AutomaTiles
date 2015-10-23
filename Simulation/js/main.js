@@ -373,6 +373,12 @@ $(document).keydown(function (e) {
         if(settings.frequency > 1)
             settings.frequency--;
     }
+    else if (e.which === 39) {  // right arrow
+        simulate(); // step forward once
+    }
+    else if (e.which == 37) {   // left arrow
+        console.log("no undo feature here"); // need to store history to implement this (not trivial)
+    }
     else if (e.which === 72) {    // 'h' or 'H' is pressed
         isRulesetHidden = !isRulesetHidden;
 
