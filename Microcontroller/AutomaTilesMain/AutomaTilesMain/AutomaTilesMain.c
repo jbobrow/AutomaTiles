@@ -67,7 +67,7 @@ int main(void)
 			getStates(states);
 			uint8_t numOn = 0;
 			
-			sync = 2;//request sync pulse be sent at next possible opportunity (set to 2 for logistical reasons)
+			sync = 3;//request sync pulse be sent at next possible opportunity (set to 2 for logistical reasons)
 			
 			for (uint8_t i = 0; i< 6; i++)
 			{
@@ -152,9 +152,13 @@ ISR(TIM0_COMPA_vect){
 	if(IRcount==5){ 
 		PORTB |= IR;
 		DDRB |= IR;
-	}else if(IRcount==7&&sync>0){
+	}else if(IRcount==7&&sync>1){
 		PORTB |= IR;
 		DDRB |= IR;		
+		sync = 1;
+	}else if(IRcount==9&&sync==1){
+		PORTB |= IR;
+		DDRB |= IR;
 		sync = 0;
 	}else if(sendState==0&&sync>0){//0 case is special
 		if((IRcount&0x01)!=0){
