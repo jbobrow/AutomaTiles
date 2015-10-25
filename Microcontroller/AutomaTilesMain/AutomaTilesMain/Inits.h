@@ -10,6 +10,8 @@
 
 void initIO(void);
 void initAD(void);
+void disAD(void);
+void enAD(void);
 void initTimer(void);
 
 #endif /* INITS_H_ */

@@ -32,13 +32,12 @@ static uint8_t seqNum = 0;//Sequence number used to prevent circular retransmiss
 volatile static uint8_t birthRules[7] = {0,0,1,1,0,0,0}; // if true, should be born
 volatile static uint8_t deathRules[7] = {1,1,0,0,1,1,1}; // if true, should die (gotta find a better metaphor, this is too sad)
 volatile static uint8_t numStates = 2; // sets the age of an automatile
+volatile static uint8_t soundEn = 1; //if true, react to sound
 
-const uint8_t colors[][3] = 
-{	//0:black
+uint8_t colors[][3] = //index corresponds to state
+{
 	{0x00,0x00,0x00},
-	//1:white
 	{0x55,0x55,0x55},
-	//2-13:colors
 	{0x7F,0x7F,0x00},
 	{0xAA,0x55,0x00},
 	{0xFF,0x00,0x00},
@@ -52,6 +51,9 @@ const uint8_t colors[][3] =
 	{0x00,0xFF,0x00},
 	{0x55,0xAA,0x00}
 };
+
+const uint8_t recieveColor[3] = {0x00, 0x7F, 0x00};
+const uint8_t transmitColor[3] = {0xAA, 0x55, 0x00};
 
 enum MODE
 {
@@ -89,7 +91,7 @@ int main(void)
 				getStates(neighborStates);
 				uint8_t numOn = 0;
 
-				sync = 3;//request sync pulse be sent at next possible opportunity (set to 2 for logistical reasons)
+				sync = 4;//request sync pulse be sent at next possible opportunity (set to 4 for logistical reasons)
 
 				for (uint8_t i = 0; i< 6; i++)
 				{
@@ -123,16 +125,15 @@ int main(void)
 			}
 		}else if(mode==recieving){
 			//disable A/D
-			
+			disAD();
 			//set photo transistor interrupt to only trigger on specific direction
 			
+			//set recieving color
+			sendColor(LEDCLK, LEDDAT, recieveColor);	
 			//record time entering the mode for timeout
 			uint32_t modeStart = timer;
 			while(mode==recieving){//stay in this mode until instructed to leave or timeout
-				if(!(timer & 0x3F)){
-					sendColor(LEDCLK, LEDDAT, colors[12]);					
-				}
-				if(timer-modeStart>5000){//been in mode 1 for more than 5 seconds
+				if(timer-modeStart>3000){//been in mode 1 for more than 5 seconds
 					mode = transmitting;					
 				}
 			}
@@ -159,9 +160,9 @@ int main(void)
 				bitsRcvd = 0;
 			}
 			
-			sendColor(LEDCLK, LEDDAT, colors[4]);
 			startTime = timer;
-			while(timer<startTime+20);//pause for mode change
+			sendColor(LEDCLK, LEDDAT, transmitColor);//update color while waiting			
+			while(timer<startTime+10);//pause for mode change
 			startTime = timer;
 			uint16_t timeDiff;
 			uint16_t bitNum;
@@ -189,6 +190,7 @@ int main(void)
 			
 			//done transmitting
 			//re-enable A/D
+			enAD();
 			//re-enable all phototransistors
 			
 			mode = running;
@@ -197,26 +199,26 @@ int main(void)
 	}
 }
 
-/* Receives two arrays containing birth rules and death rules
- * Each array contains 0 or 1 in each position to 
+/* Receives two bytes containing birth rules and death rules
+ * Each byte contains 0 or 1 in each position to 
  * represent true or false if born or killed off with n neighbors
  */
-static void setRules(uint8_t* br, uint8_t* dr) {
-	birthRules[0] = br[0];
-	birthRules[1] = br[1];
-	birthRules[2] = br[2];
-	birthRules[3] = br[3];
-	birthRules[4] = br[4];
-	birthRules[5] = br[5];
-	birthRules[6] = br[6];
+static void setRules(uint8_t br, uint8_t dr) {
+	birthRules[0] = br&(1<<0);
+	birthRules[1] = br&(1<<1);
+	birthRules[2] = br&(1<<2);
+	birthRules[3] = br&(1<<3);
+	birthRules[4] = br&(1<<4);
+	birthRules[5] = br&(1<<5);
+	birthRules[6] = br&(1<<6);
 	
-	deathRules[0] = dr[0];
-	deathRules[1] = dr[1];
-	deathRules[2] = dr[2];
-	deathRules[3] = dr[3];
-	deathRules[4] = dr[4];
-	deathRules[5] = dr[5];
-	deathRules[6] = dr[6];
+	deathRules[0] = dr&(1<<0);
+	deathRules[1] = dr&(1<<1);
+	deathRules[2] = dr&(1<<2);
+	deathRules[3] = dr&(1<<3);
+	deathRules[4] = dr&(1<<4);
+	deathRules[5] = dr&(1<<5);
+	deathRules[6] = dr&(1<<6);
 }
 
 /* Set the number of states each automatile will go through
@@ -225,6 +227,15 @@ static void setRules(uint8_t* br, uint8_t* dr) {
  */
 static void setNumStates(uint8_t num) {
 	numStates = num;
+}
+
+static void setColors(volatile uint8_t* buf){
+	colors[0][0] = buf[0];
+	colors[0][1] = buf[1];
+	colors[0][2] = buf[2];
+	colors[1][0] = buf[3];
+	colors[1][1] = buf[4];
+	colors[1][2] = buf[5];
 }
 
 /* Uses the current state of the times ring buffer to determine the states of neighboring tiles
@@ -269,8 +280,41 @@ static void getStates(uint8_t * result){
 }
 
 //parse received data buffer and update values
+//1 -> next 2 bytes are rules
+//2 -> next byte is number of states
+//3 -> next 6 bytes are colors
+//4 -> disable mic
+//5 -> enable mic
 static void parseBuffer(){
-	
+	seqNum = comBuf[0];
+	int i = 1;
+	uint8_t numBytes = bitsRcvd/8;
+	while(i<numBytes){
+		if(comBuf[i]==1){
+			if(i+2<numBytes){
+				setRules(comBuf[i+1],comBuf[i+2]); 
+			}
+			i+=3;
+		}else if(comBuf[i]==2){
+			if(i+1<numBytes){
+				setNumStates(comBuf[i+1]);
+			}
+			i+=2;
+		}else if(comBuf[i]==3){
+			if(i+6<numBytes){
+				setColors(comBuf+i+1);
+			}
+			i+=7;
+		}else if(comBuf[i]==4){
+			soundEn = 0;
+			i++;
+		}else if(comBuf[i]==5){
+			soundEn = 1;
+			i++;
+		}else{
+			i++;
+		}
+	}
 }
 
 //Timer interrupt occurs every 1 ms
@@ -291,11 +335,15 @@ ISR(TIM0_COMPA_vect){
 		if(IRcount==5){ 
 			PORTB |= IR;
 			DDRB |= IR;
-		}else if(IRcount==7&&sync>1){
+		}else if(IRcount==7&&sync>2){
 			PORTB |= IR;
 			DDRB |= IR;		
+			sync = 2;
+		}else if(IRcount==9&&sync==2){
+			PORTB |= IR;
+			DDRB |= IR;
 			sync = 1;
-		}else if(IRcount==9&&sync==1){
+		}else if(IRcount==11&&sync==1){
 			PORTB |= IR;
 			DDRB |= IR;
 			sync = 0;
@@ -345,12 +393,12 @@ ISR(PCINT0_vect){
 		for(uint8_t i = 0; i < 6; i++){
 			if(newOn & 1<<i){ //if an element is newly on, 
 				if(timer-times[i][timeBuf[i]]<10){//This is a rapid pulse. treat like a click
-					if(holdoff==0){
-						if(pulseCount[i]==0){//no burst clicks
+					pulseCount[i]++;
+					if(pulseCount[i]==2){
+						if(holdoff==0){
 							click = 1;
 						}
 					}
-					pulseCount[i]++;
 					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.							
 						mode = recieving;
 						progDir = i;
@@ -365,19 +413,19 @@ ISR(PCINT0_vect){
 		}
 	}else if(mode==recieving){
 		if(((prevVals^vals)&(1<<progDir))){//programming pin has changed
-			if(timer-oldTime > 3/2*pulseWidth){//an edge we care about
+			if(timer-oldTime > (3*pulseWidth)/2){//an edge we care about
 				if(timer-oldTime > 4*pulseWidth){//first bit. use for sync
 					bitsRcvd = 0;
 					for(int i = 0; i < 64; i++){//zero out buffer
 						comBuf[i]=0;
 					}					
 				}
+				oldTime = timer;				
 				if(bitsRcvd<64*8){
 					uint8_t bit = ((vals&(1<<progDir))>>progDir);
-					comBuf[bitsRcvd/8] |= bit<<bitsRcvd%8;
+					comBuf[bitsRcvd/8] |= bit<<(bitsRcvd%8);
 					bitsRcvd++;
-				}
-				oldTime = timer;
+				}				
 			}
 		}
 	}
@@ -426,7 +474,9 @@ ISR(ADC_vect){
 	
 	if(holdoff == 0){//holdoff can be set elsewhere to disable click being set for a period of time
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 16, an exceptional event is needed.
-			click = delta;//Board triggered click as soon as it could (double steps)
+			if(soundEn){
+				click = delta;//Board triggered click as soon as it could (double steps)
+			}
 		}
 	}else{
 		holdoff--;

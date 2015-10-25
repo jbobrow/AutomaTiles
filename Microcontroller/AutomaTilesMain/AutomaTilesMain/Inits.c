@@ -34,11 +34,17 @@ void initAD(){//Set up all the necessary parameters for analog to digital conver
 }
 
 void disAD(){//disable microphone when not in use
-	
+	ADCSRA = (0 << ADEN) // disable
+	| (1 << ADATE) | (1 << ADIE) // auto trigger and interrupt enable
+	| (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // prescaler /8
 }
 
 void enAD(){//re-enable microphone
-	
+	ADCSRA = (1 << ADEN) // ensable
+	| (1 << ADATE) | (1 << ADIE) // auto trigger and interrupt enable
+	| (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // prescaler /8
+	// start free running operation
+	ADCSRA |= (1 << ADSC);
 }
 
 void initTimer(){//Set up global .1ms timer used for various protocols
