@@ -33,6 +33,14 @@ void initAD(){//Set up all the necessary parameters for analog to digital conver
 	ADCSRA |= (1 << ADSC);
 }
 
+void disAD(){//disable microphone when not in use
+	
+}
+
+void enAD(){//re-enable microphone
+	
+}
+
 void initTimer(){//Set up global .1ms timer used for various protocols
 	TCCR0A = (0<<COM0A1)|(0<<COM0A0)//OC0A Disconnected
 		|(0<<COM0B1)|(0<<COM0B0)//OC0B Disconnected
