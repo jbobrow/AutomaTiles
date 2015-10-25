@@ -15,7 +15,7 @@
 #include "Inits.h"
 #include "APA102C.h"
 
-
+const uint8_t pulseWidth = 4;//1/2 bit of manchester encoding, time in ms
 volatile static int16_t holdoff = 2000;//for temporarily preventing click outputs
 volatile static uint8_t click = 0;//becomes non-zero when a click is detected
 volatile static uint8_t sync = 0;//becomes non-zero when synchronization pulses need to be sent out
@@ -26,6 +26,7 @@ volatile static uint8_t timeBuf[6];//ring buffer indices
 volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
 volatile static uint8_t comBuf[64];//buffer for holding communicated messages when programming rules (oversized)
 volatile static uint16_t bitsRcvd = 0;//tracking number of bits received for retransmission/avoiding overflow
+static uint8_t seqNum = 0;//Sequence number used to prevent circular retransmission of data
 
 const uint8_t colors[][3] = 
 {	//0:black
@@ -56,6 +57,7 @@ enum MODE
 } mode;
 	
 static void getStates(uint8_t * result);
+static void parseBuffer();
 
 int main(void)
 {
@@ -70,6 +72,8 @@ int main(void)
 	for(uint8_t i = 0; i<6; i++){
 		timeBuf[i]=0;
 	}
+	
+	mode = running;
 	
     while(1)
     {	
@@ -117,15 +121,66 @@ int main(void)
 					sendColor(LEDCLK, LEDDAT, colors[12]);					
 				}
 				if(timer-modeStart>5000){//been in mode 1 for more than 5 seconds
-					mode = running;
-					//re-enable A/D
-					//re-enable all phototransistors
+					mode = transmitting;					
 				}
 			}
 		}else if(mode==transmitting){
-			if(!(timer & 0x3F)){
-				sendColor(LEDCLK, LEDDAT, colors[4]);
+			//disable Phototransistor Interrupt
+			
+			//set LED to output
+			DDRB |= IR;//Set direction out
+			//send 5 pulses
+			uint32_t startTime = timer;
+			if(bitsRcvd>=8 && comBuf[0]!=seqNum){
+				for(int i=0; i<5; i++){
+					while(timer==startTime){
+						PORTB &= ~IR;
+					}
+					startTime = timer;
+					while(timer==startTime){
+						PORTB |= IR;
+					}
+					startTime = timer;
+				}
+				parseBuffer();
+			}else{
+				bitsRcvd = 0;
 			}
+			
+			sendColor(LEDCLK, LEDDAT, colors[4]);
+			startTime = timer;
+			while(timer<startTime+20);//pause for mode change
+			startTime = timer;
+			uint16_t timeDiff;
+			uint16_t bitNum;
+			while(bitsRcvd>0){
+				timeDiff = (timer-startTime)/pulseWidth;
+				bitNum = timeDiff/2;
+				if(timeDiff%2==0){//first half
+					if(comBuf[bitNum/8]&(1<<bitNum%8)){//bit high
+						PORTB &=  ~IR;
+					}else{//bit low
+						PORTB |=  IR;
+					}
+				}else{//second half
+					if(comBuf[bitNum/8]&(1<<bitNum%8)){//bit high
+						PORTB |=  IR;
+						}else{//bit low
+						PORTB &=  ~IR;
+					}
+				}
+				if(bitNum>=bitsRcvd){
+					bitsRcvd = 0;
+				}				
+			}
+			
+			
+			//done transmitting
+			//re-enable A/D
+			//re-enable all phototransistors
+			
+			mode = running;
+
 		}
 	}
 }
@@ -171,6 +226,11 @@ static void getStates(uint8_t * result){
 	sei();//Re-enable interrupts
 }
 
+//parse received data buffer and update values
+static void parseBuffer(){
+	
+}
+
 //Timer interrupt occurs every 1 ms
 //Increments timer and controls IR LEDs to keep their timing consistent
 ISR(TIM0_COMPA_vect){
@@ -185,39 +245,43 @@ ISR(TIM0_COMPA_vect){
 				sendState = state;
 			}
 		}
-	}
-	if(IRcount==5){ 
-		PORTB |= IR;
-		DDRB |= IR;
-	}else if(IRcount==7&&sync>1){
-		PORTB |= IR;
-		DDRB |= IR;		
-		sync = 1;
-	}else if(IRcount==9&&sync==1){
-		PORTB |= IR;
-		DDRB |= IR;
-		sync = 0;
-	}else if(sendState==0&&sync>0){//0 case is special
-		if((IRcount&0x01)!=0){
-			PORTB |= IR;
-			DDRB |= IR;			
-			sync -= 1;
-			}else{
-			DDRB &= ~IR;//Set direction in
-			PORTB &= ~IR;
-		}
-	}else{
-		DDRB &= ~IR;//Set direction in
-		PORTB &= ~IR;//Set pin tristated
 		
-		if(IRcount<5){
-			if(PINB & BUTTON){//Button active high
-				if(holdoff==0){
-					state = !state;//simple setup for 2 state tile
+		if(IRcount==5){ 
+			PORTB |= IR;
+			DDRB |= IR;
+		}else if(IRcount==7&&sync>1){
+			PORTB |= IR;
+			DDRB |= IR;		
+			sync = 1;
+		}else if(IRcount==9&&sync==1){
+			PORTB |= IR;
+			DDRB |= IR;
+			sync = 0;
+		}else if(sendState==0&&sync>0){//0 case is special
+			if((IRcount&0x01)!=0){
+				PORTB |= IR;
+				DDRB |= IR;			
+				sync -= 1;
+				}else{
+				DDRB &= ~IR;//Set direction in
+				PORTB &= ~IR;
+			}
+		}else{
+			DDRB &= ~IR;//Set direction in
+			PORTB &= ~IR;//Set pin tristated
+		
+			if(IRcount<5){
+				if(PINB & BUTTON){//Button active high
+					if(holdoff==0){
+						state = !state;//simple setup for 2 state tile
+					}
+					holdoff = 500;//debounce and hold state until released
 				}
-				holdoff = 500;//debounce and hold state until released
 			}
 		}
+	}else if(mode == recieving){//recieving data, ensure led off
+		DDRB &= ~IR;//Set direction in
+		PORTB &= ~IR;//Set pin tristated		
 	}
 }
 
@@ -258,16 +322,16 @@ ISR(PCINT0_vect){
 			}
 		}
 	}else if(mode==recieving){
-		if(!((prevVals^vals)&(1<<progDir))){//programming pin has changed
-			if(timer-oldTime > 3){//an edge we care about
-				if(timer-oldTime > 8){//first bit. use for sync
+		if(((prevVals^vals)&(1<<progDir))){//programming pin has changed
+			if(timer-oldTime > 3/2*pulseWidth){//an edge we care about
+				if(timer-oldTime > 4*pulseWidth){//first bit. use for sync
 					bitsRcvd = 0;
 					for(int i = 0; i < 64; i++){//zero out buffer
 						comBuf[i]=0;
 					}					
 				}
 				if(bitsRcvd<64*8){
-					uint8_t bit = (vals&(1<<progDir))!=0;
+					uint8_t bit = ((vals&(1<<progDir))>>progDir);
 					comBuf[bitsRcvd/8] |= bit<<bitsRcvd%8;
 					bitsRcvd++;
 				}
