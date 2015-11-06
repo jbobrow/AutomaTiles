@@ -1,5 +1,5 @@
 int dataPin = 3;
-int freq = 4; //carrier freq in ms
+int freq = 8; //carrier freq in ms
 void setup() {
   pinMode(dataPin,OUTPUT);
   Serial.begin(9600);
