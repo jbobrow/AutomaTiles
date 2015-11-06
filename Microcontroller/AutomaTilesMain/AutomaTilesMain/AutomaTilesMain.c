@@ -91,7 +91,7 @@ int main(void)
 				getStates(neighborStates);
 				uint8_t numOn = 0;
 
-				sync = 4;//request sync pulse be sent at next possible opportunity (set to 4 for logistical reasons)
+				sync = 3;//request sync pulse be sent at next possible opportunity (set to 4 for logistical reasons)
 
 				for (uint8_t i = 0; i< 6; i++)
 				{
@@ -162,7 +162,7 @@ int main(void)
 			
 			startTime = timer;
 			sendColor(LEDCLK, LEDDAT, transmitColor);//update color while waiting			
-			while(timer<startTime+10);//pause for mode change
+			while(timer<startTime+20);//pause for mode change
 			startTime = timer;
 			uint16_t timeDiff;
 			uint16_t bitNum;
@@ -186,7 +186,7 @@ int main(void)
 					bitsRcvd = 0;
 				}				
 			}
-			
+			//while(timer<startTime+2000);//pause for effect
 			
 			//done transmitting
 			//re-enable A/D
@@ -335,15 +335,11 @@ ISR(TIM0_COMPA_vect){
 		if(IRcount==5){ 
 			PORTB |= IR;
 			DDRB |= IR;
-		}else if(IRcount==7&&sync>2){
+		}else if(IRcount==7&&sync>1){
 			PORTB |= IR;
 			DDRB |= IR;		
-			sync = 2;
-		}else if(IRcount==9&&sync==2){
-			PORTB |= IR;
-			DDRB |= IR;
 			sync = 1;
-		}else if(IRcount==11&&sync==1){
+		}else if(IRcount==9&&sync==1){
 			PORTB |= IR;
 			DDRB |= IR;
 			sync = 0;

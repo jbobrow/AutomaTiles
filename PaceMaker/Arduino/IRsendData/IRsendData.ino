@@ -18,7 +18,7 @@ int count = 8;
 int resp;
 void loop() {
   Serial.write("\n\rEnter Selection:\n\r1: Change Color\n\r2: Send Last Color\n\r");
-  Serial.write("3: Turn On Sound\n\r4: Turn Off Sound\n\r5: Start Pacemaker\n\r")
+  Serial.write("3: Turn On Sound\n\r4: Turn Off Sound\n\r5: Start Pacemaker\n\r");
   resp = readInt();
   if(resp<1 || resp>5){
     Serial.write("\n\rInvalid Input\n\r");
@@ -39,7 +39,7 @@ void loop() {
     }else if(resp==5){
       Serial.write("\n\rSend Any Character To Stop\n\r");
       while(Serial.available() == 0){
-        for(int i = 0; i< 4; i++){
+        for(int i = 0; i< 3; i++){
           digitalWrite(dataPin,HIGH);
           delayMicroseconds(1000);
           digitalWrite(dataPin,LOW);
