@@ -15,7 +15,7 @@
 #include "Inits.h"
 #include "APA102C.h"
 
-const uint8_t pulseWidth = 4;//1/2 bit of manchester encoding, time in ms
+const uint8_t pulseWidth = 8;//1/2 bit of manchester encoding, time in ms
 volatile static int16_t holdoff = 2000;//for temporarily preventing click outputs
 volatile static uint8_t click = 0;//becomes non-zero when a click is detected
 volatile static uint8_t sync = 0;//becomes non-zero when synchronization pulses need to be sent out
@@ -127,7 +127,7 @@ int main(void)
 			//disable A/D
 			disAD();
 			//set photo transistor interrupt to only trigger on specific direction
-			
+			setDir(progDir);
 			//set recieving color
 			sendColor(LEDCLK, LEDDAT, recieveColor);	
 			//record time entering the mode for timeout
@@ -139,7 +139,7 @@ int main(void)
 			}
 		}else if(mode==transmitting){
 			//disable Phototransistor Interrupt
-			
+			setDirNone();
 			//set LED to output
 			DDRB |= IR;//Set direction out
 			//send 5 pulses
@@ -192,7 +192,8 @@ int main(void)
 			//re-enable A/D
 			enAD();
 			//re-enable all phototransistors
-			
+			setDirAll();
+			state = 0;
 			mode = running;
 
 		}

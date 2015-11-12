@@ -6,7 +6,6 @@
  */ 
 
 #include "Inits.h"
-#include "Pins.h"
 
 void initIO(){//Set up pin directions, pull up/downs, overrides, pin change interrupts
 	DDRA = POWER; //Set IR LED pin as output
@@ -45,6 +44,18 @@ void enAD(){//re-enable microphone
 	| (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // prescaler /8
 	// start free running operation
 	ADCSRA |= (1 << ADSC);
+}
+
+void setDir(uint8_t dir){//make tile only listen to one phototransistor
+	PCMSK0 = 1<<dir;
+}
+
+void setDirNone(){
+	PCMSK0 = 0;
+}
+
+void setDirAll(){//make tile listen to all phototransistors
+	PCMSK0 = 0x3F;
 }
 
 void initTimer(){//Set up global .1ms timer used for various protocols
