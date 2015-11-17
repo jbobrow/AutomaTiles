@@ -10,12 +10,12 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/cpufunc.h>
+#include <avr/sleep.h>
 
 #include "Pins.h"
 #include "Inits.h"
 #include "APA102C.h"
 
-const uint8_t pulseWidth = 8;//1/2 bit of manchester encoding, time in ms
 volatile static int16_t holdoff = 2000;//for temporarily preventing click outputs
 volatile static uint8_t click = 0;//becomes non-zero when a click is detected
 volatile static uint8_t sync = 0;//becomes non-zero when synchronization pulses need to be sent out
@@ -23,6 +23,13 @@ volatile static uint8_t state = 0;//current state of tile
 volatile static uint32_t timer = 0;//.1 ms timer tick
 volatile static uint32_t times[6][4];//ring buffer for holding leading  detection edge times for the phototransistors
 volatile static uint8_t timeBuf[6];//ring buffer indices
+
+const uint32_t TIMEOUT = 10;
+volatile static uint32_t sleepTimer = 0;
+volatile static uint32_t powerDownTimer = 0;
+volatile static uint8_t wake = 0;
+
+const uint8_t PULSE_WIDTH = 8;//1/2 bit of manchester encoding, time in ms
 volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
 volatile static uint8_t comBuf[64];//buffer for holding communicated messages when programming rules (oversized)
 volatile static uint16_t bitsRcvd = 0;//tracking number of bits received for retransmission/avoiding overflow
@@ -36,7 +43,7 @@ volatile static uint8_t soundEn = 1; //if true, react to sound
 
 uint8_t colors[][3] = //index corresponds to state
 {
-	{0x00,0x00,0x00},
+	{0x55,0x00,0x00},
 	{0x55,0x55,0x55},
 	{0x7F,0x7F,0x00},
 	{0xAA,0x55,0x00},
@@ -52,6 +59,8 @@ uint8_t colors[][3] = //index corresponds to state
 	{0x55,0xAA,0x00}
 };
 
+const uint8_t dark[3] = {0x00, 0x00, 0x00};
+const uint8_t bright[3] = {0xFF, 0xFF, 0xFF};
 const uint8_t recieveColor[3] = {0x00, 0x7F, 0x00};
 const uint8_t transmitColor[3] = {0xAA, 0x55, 0x00};
 
@@ -75,6 +84,8 @@ int main(void)
 	sei();
 	initAD();
 	initTimer();
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	sleep_enable();
 	//Set up timing ring buffers
 	for(uint8_t i = 0; i<6; i++){
 		timeBuf[i]=0;
@@ -85,10 +96,31 @@ int main(void)
     while(1)
 
     {	
-		if(mode==running){
+		if(mode==sleep){
+			disAD();
+			//
+			DDRB &= ~IR;//Set direction in
+			PORTB &= ~IR;//Set pin tristated
+			sendColor(LEDCLK, LEDDAT, dark);
+			PORTA |= POWER;//Set LED and Mic power pin high (off)
+			wake = 0;
+			while(!wake){
+				if(timer-powerDownTimer>5000){
+					sleep_cpu();
+					wake = 1;
+				}
+			}
+			holdoff=500;
+			PORTA &= ~POWER;
+			enAD();
+			powerDownTimer = timer;
+			sleepTimer = timer;
+			mode = running;
+		}else if(mode==running){
 			if(click){
 				uint8_t neighborStates[6];
 				getStates(neighborStates);
+				sendColor(LEDCLK, LEDDAT, bright);
 				uint8_t numOn = 0;
 
 				sync = 3;//request sync pulse be sent at next possible opportunity (set to 4 for logistical reasons)
@@ -122,6 +154,11 @@ int main(void)
 			//periodically update LED once every 0x3F = 64 ms (fast enough to feel responsive)
 			if(!(timer & 0x3F)){
 				sendColor(LEDCLK, LEDDAT, colors[state]);
+			}
+			
+			//check if we enter sleep mode
+			if(timer-sleepTimer>1000*TIMEOUT){
+				mode = sleep;
 			}
 		}else if(mode==recieving){
 			//disable A/D
@@ -167,7 +204,7 @@ int main(void)
 			uint16_t timeDiff;
 			uint16_t bitNum;
 			while(bitsRcvd>0){
-				timeDiff = (timer-startTime)/pulseWidth;
+				timeDiff = (timer-startTime)/PULSE_WIDTH;
 				bitNum = timeDiff/2;
 				if(timeDiff%2==0){//first half
 					if(comBuf[bitNum/8]&(1<<bitNum%8)){//bit high
@@ -361,6 +398,8 @@ ISR(TIM0_COMPA_vect){
 				if(PINB & BUTTON){//Button active high
 					if(holdoff==0){
 						state = !state;//simple setup for 2 state tile
+						sleepTimer = timer;
+						powerDownTimer = timer;
 					}
 					holdoff = 500;//debounce and hold state until released
 				}
@@ -374,8 +413,8 @@ ISR(TIM0_COMPA_vect){
 
 
 //INT0 interrupt triggered when the pushbutton is pressed
-ISR(INT0_vect){
-	
+ISR(PCINT1_vect){
+	wake = 1;
 }
 
 //Pin Change 0 interrupt triggered when any of the phototransistors change level
@@ -386,6 +425,9 @@ ISR(PCINT0_vect){
 	static uint32_t oldTime = 0; //stored the previous time for data transmission
 	uint8_t vals = PINA & 0x3f; //mask out phototransistors
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
+	
+	powerDownTimer = timer;
+	
 	if(mode==running){
 		for(uint8_t i = 0; i < 6; i++){
 			if(newOn & 1<<i){ //if an element is newly on, 
@@ -394,6 +436,8 @@ ISR(PCINT0_vect){
 					if(pulseCount[i]==2){
 						if(holdoff==0){
 							click = 1;
+							wake = 1;
+							sleepTimer = timer;
 						}
 					}
 					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.							
@@ -410,8 +454,8 @@ ISR(PCINT0_vect){
 		}
 	}else if(mode==recieving){
 		if(((prevVals^vals)&(1<<progDir))){//programming pin has changed
-			if(timer-oldTime > (3*pulseWidth)/2){//an edge we care about
-				if(timer-oldTime > 4*pulseWidth){//first bit. use for sync
+			if(timer-oldTime > (3*PULSE_WIDTH)/2){//an edge we care about
+				if(timer-oldTime > 4*PULSE_WIDTH){//first bit. use for sync
 					bitsRcvd = 0;
 					for(int i = 0; i < 64; i++){//zero out buffer
 						comBuf[i]=0;
@@ -473,6 +517,7 @@ ISR(ADC_vect){
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 16, an exceptional event is needed.
 			if(soundEn){
 				click = delta;//Board triggered click as soon as it could (double steps)
+				sleepTimer = timer;
 			}
 		}
 	}else{

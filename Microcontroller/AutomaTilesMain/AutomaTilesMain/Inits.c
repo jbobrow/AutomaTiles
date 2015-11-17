@@ -12,9 +12,9 @@ void initIO(){//Set up pin directions, pull up/downs, overrides, pin change inte
 	PORTA = 0x00; //No pull ups and POWER is set low
 	DDRB = LEDCLK|LEDDAT; //Set LED signals as outputs
 	PORTB = 0x00; //No pull ups and IR LED is low
-	MCUCR|=(1<<ISC01)|(0<<ISC00);//Button interrupt is triggered on a falling edge
-	PCMSK0 = 0x3F; //mask out only the phototransistors for the pin change interrupt
-	GIMSK = (1<<INT0)|(0<<PCIE1)|(1<<PCIE0);//Enable INT0 interrupt for the button and Pin change interrupts for the phototransistors
+	PCMSK1 = BUTTON; //Mask out only the button for the pin change interrupt
+	PCMSK0 = 0x3F; //Mask out only the phototransistors for the pin change interrupt
+	GIMSK = (1<<PCIE1)|(1<<PCIE0);//Enable Pin change interrupt for the button and Pin change interrupts for the phototransistors
 	PRR = (1<<PRTIM1)|(1<<PRUSI);//Disable unused modules
 }
 
