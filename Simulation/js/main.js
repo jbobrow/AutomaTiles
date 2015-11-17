@@ -91,37 +91,40 @@ var simulate = function () {
     // visit each cell:
     for (var i = 0; i < ROWS * COLS; i++) {
 
-        // count neighbors
-        var neighborsAlive = 0;
+        // count cooperators
+        var neighborsCooperating = 0;
+        var numNeighbors = 0;
+
+        //discuss with each neighbor
         for (var j = 0; j < population[i].getNeighbors().length; j++) {
             var cell = population[i];
             var neighborID = cell.neighbors[j];
 
+            // check bounds
             if (neighborID < 0 || neighborID >= ROWS * COLS) {
                 continue;
             } else if (!population[neighborID].isPresent) {
                 continue;
             }
 
-            if (population[neighborID].state == 1)
-                neighborsAlive = neighborsAlive + 1;
+            // count number of present neighbors
+            numNeighbors++;
+
+            // negotiate w/ neighbor
+            if (population[neighborID].state == 0)  // 0 state equals cooperate
+                neighborsCooperating = neighborsCooperating + 1;
         }
 
-        // enfore the rules
-        if (doBirthAutomaTile(neighborsAlive, population[i].state)) {
-            // birth
-            // console.log("birth cell");
-            population[i].setNextState(1);
-        }
-        else if (doKeepAliveAutomaTile(neighborsAlive, population[i].state)) {
-            // live
-            // console.log("keep this cell alive");
-            population[i].setNextState(1);
+        var payoffCoop = neighborsCooperating * settings.payoff_coop;
+        var payoffDefect = (numNeighbors - neighborsCooperating) * settings.payoff_defect;
+
+        if(payoffCoop >= payoffDefect) {
+            // cooperate
+            population[i].setNextState(0);
         }
         else {
-            // die
-            // console.log("let cell die");
-            population[i].setNextState(0);
+            // defect
+            population[i].setNextState(1);
         }
     }
 
@@ -139,51 +142,6 @@ var simulate = function () {
     // Die unless it has 2 or 3 neighbours
     // The cell is dead: make it live if necessary
     // Only if it has 3 neighbours
-};
-
-var doBirthAutomaTile = function (neighbors, state) {
-    if (state == 0) {
-        if (birthRules[0] && neighbors == 0) return true;
-        if (birthRules[1] && neighbors == 1) return true;
-        if (birthRules[2] && neighbors == 2) return true;
-        if (birthRules[3] && neighbors == 3) return true;
-        if (birthRules[4] && neighbors == 4) return true;
-        if (birthRules[5] && neighbors == 5) return true;
-        if (birthRules[6] && neighbors == 6) return true;
-        if (birthRules[7] && neighbors == 7) return true;
-        if (birthRules[8] && neighbors == 8) return true;
-    }
-    return false;
-};
-
-var doKeepAliveAutomaTile = function (neighbors, state) {
-    if (state == 1) {
-        if (!deathRules[0] && neighbors == 0) return true;
-        if (!deathRules[1] && neighbors == 1) return true;
-        if (!deathRules[2] && neighbors == 2) return true;
-        if (!deathRules[3] && neighbors == 3) return true;
-        if (!deathRules[4] && neighbors == 4) return true;
-        if (!deathRules[5] && neighbors == 5) return true;
-        if (!deathRules[6] && neighbors == 6) return true;
-        if (!deathRules[7] && neighbors == 7) return true;
-        if (!deathRules[8] && neighbors == 8) return true;
-    }
-    return false;
-};
-
-var doKillAutomaTile = function (neighbors, state) {
-    if (state == 1) {
-        if (deathRules[0] && neighbors == 0) return true;
-        if (deathRules[1] && neighbors == 1) return true;
-        if (deathRules[2] && neighbors == 2) return true;
-        if (deathRules[3] && neighbors == 3) return true;
-        if (deathRules[4] && neighbors == 4) return true;
-        if (deathRules[5] && neighbors == 5) return true;
-        if (deathRules[6] && neighbors == 6) return true;
-        if (deathRules[7] && neighbors == 7) return true;
-        if (deathRules[8] && neighbors == 8) return true;
-    }
-    return false;
 };
 
 // reset the board to all off state
@@ -226,60 +184,8 @@ var selectRandomTiles = function () {
 };
 
 
-// init checkboxes to ruleset
-var initRuleset = function () {
-    // set birth rules
-    document.getElementById("birth_0").checked = birthRules[0];
-    document.getElementById("birth_1").checked = birthRules[1];
-    document.getElementById("birth_2").checked = birthRules[2];
-    document.getElementById("birth_3").checked = birthRules[3];
-    document.getElementById("birth_4").checked = birthRules[4];
-    document.getElementById("birth_5").checked = birthRules[5];
-    document.getElementById("birth_6").checked = birthRules[6];
-    document.getElementById("birth_7").checked = birthRules[7];
-    document.getElementById("birth_8").checked = birthRules[8];
-    // set death rules
-    document.getElementById("death_0").checked = deathRules[0];
-    document.getElementById("death_1").checked = deathRules[1];
-    document.getElementById("death_2").checked = deathRules[2];
-    document.getElementById("death_3").checked = deathRules[3];
-    document.getElementById("death_4").checked = deathRules[4];
-    document.getElementById("death_5").checked = deathRules[5];
-    document.getElementById("death_6").checked = deathRules[6];
-    document.getElementById("death_7").checked = deathRules[7];
-    document.getElementById("death_8").checked = deathRules[8];
-};
-
-
-// update ruleset
-var updateRuleset = function () {
-    // update birth rules
-    birthRules[0] = document.getElementById("birth_0").checked;
-    birthRules[1] = document.getElementById("birth_1").checked;
-    birthRules[2] = document.getElementById("birth_2").checked;
-    birthRules[3] = document.getElementById("birth_3").checked;
-    birthRules[4] = document.getElementById("birth_4").checked;
-    birthRules[5] = document.getElementById("birth_5").checked;
-    birthRules[6] = document.getElementById("birth_6").checked;
-    birthRules[7] = document.getElementById("birth_7").checked;
-    birthRules[8] = document.getElementById("birth_8").checked;
-    // update death rules
-    deathRules[0] = document.getElementById("death_0").checked;
-    deathRules[1] = document.getElementById("death_1").checked;
-    deathRules[2] = document.getElementById("death_2").checked;
-    deathRules[3] = document.getElementById("death_3").checked;
-    deathRules[4] = document.getElementById("death_4").checked;
-    deathRules[5] = document.getElementById("death_5").checked;
-    deathRules[6] = document.getElementById("death_6").checked;
-    deathRules[7] = document.getElementById("death_7").checked;
-    deathRules[8] = document.getElementById("death_8").checked;
-};
-
 // Do this stuff on load (thanks jquery!)
 $(function () {
-
-    // init ruleset
-    initRuleset();
 
     two = new Two({
         //width: $(window).width(),

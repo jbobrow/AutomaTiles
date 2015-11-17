@@ -24,6 +24,10 @@ function Settings() {
 
     this.isAnimated = true;
 
+    // Prisoner's Dilemma
+    this.payoff_coop = 1.0;
+    this.payoff_defect = 2.0;
+
     this.step = function () {
         //step forward in game of life
         //step();
@@ -64,6 +68,11 @@ gui.add(settings, 'step');
 var autoplay_control = gui.add(settings, 'autoplay').listen();
 
 var freq_control = gui.add(settings, 'frequency', 1, 20).step(1).listen();
+
+var f5 = gui.addFolder('Prisoners Dilemma');
+var payoff_coop_control = f5.add(settings, 'payoff_coop', 0, 10).listen();
+var payoff_defect_control = f5.add(settings, 'payoff_defect', 0, 10).listen();
+f5.closed = false;
 
 gui.add(settings, 'reset');
 
@@ -155,4 +164,12 @@ shape_control.onChange(function () {
 
 autoplay_control.onChange(function () {
     // turn autoplay on or off depending
+});
+
+payoff_coop_control.onChange(function () {
+   // update coop payoff
+});
+
+payoff_defect_control.onChange(function () {
+   // update defect payoff
 });
