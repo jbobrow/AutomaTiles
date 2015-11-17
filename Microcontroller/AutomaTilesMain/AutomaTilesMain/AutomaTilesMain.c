@@ -105,7 +105,10 @@ int main(void)
 			PORTA |= POWER;//Set LED and Mic power pin high (off)
 			wake = 0;
 			while(!wake){
-				if(timer-powerDownTimer>5000){
+				cli();
+				uint32_t diff = timer-powerDownTimer;
+				sei();
+				if(diff>5000){
 					sleep_cpu();
 					wake = 1;
 				}
@@ -157,9 +160,11 @@ int main(void)
 			}
 			
 			//check if we enter sleep mode
+			cli();//temporarilly prevent interrupts to protect timer
 			if(timer-sleepTimer>1000*TIMEOUT){
 				mode = sleep;
 			}
+			sei();
 		}else if(mode==recieving){
 			//disable A/D
 			disAD();
@@ -168,9 +173,14 @@ int main(void)
 			//set recieving color
 			sendColor(LEDCLK, LEDDAT, recieveColor);	
 			//record time entering the mode for timeout
+			cli();
 			uint32_t modeStart = timer;
+			sei();
 			while(mode==recieving){//stay in this mode until instructed to leave or timeout
-				if(timer-modeStart>3000){//been in mode 1 for more than 5 seconds
+				cli();
+				uint32_t diff = timer-modeStart;
+				sei();
+				if(diff>3000){//been in mode 1 for more than 5 seconds
 					mode = transmitting;					
 				}
 			}
