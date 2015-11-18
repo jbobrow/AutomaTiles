@@ -527,7 +527,9 @@ ISR(ADC_vect){
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 16, an exceptional event is needed.
 			if(soundEn){
 				click = delta;//Board triggered click as soon as it could (double steps)
+				cli();
 				sleepTimer = timer;
+				sei();
 			}
 		}
 	}else{
