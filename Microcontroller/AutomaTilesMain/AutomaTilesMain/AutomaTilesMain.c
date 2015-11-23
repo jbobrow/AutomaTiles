@@ -24,7 +24,7 @@ volatile static uint32_t timer = 0;//.1 ms timer tick
 volatile static uint32_t times[6][4];//ring buffer for holding leading  detection edge times for the phototransistors
 volatile static uint8_t timeBuf[6];//ring buffer indices
 
-const uint32_t TIMEOUT = 10;
+const uint32_t TIMEOUT = 20;
 volatile static uint32_t sleepTimer = 0;
 volatile static uint32_t powerDownTimer = 0;
 volatile static uint8_t wake = 0;
@@ -58,6 +58,19 @@ uint8_t colors[][3] = //index corresponds to state
 	{0x00,0xFF,0x00},
 	{0x55,0xAA,0x00}
 };
+
+const uint8_t CYCLE_TIME = 32;
+uint8_t cycleTimer = 0;
+uint32_t lastTime = 0;
+const uint8_t breatheCycle[] = 
+{64, 72, 81, 90, 100, 110, 121, 132,
+144, 156, 169, 182, 196, 211, 225, 241,
+255, 241, 225, 211, 196, 182, 169, 156,
+144, 132, 121, 110, 100, 90, 81, 72};
+/*{64, 68, 72, 76, 81, 85, 90, 95, 100, 105, 110, 116, 121, 127, 132,	138, 
+144, 150, 156, 163, 169, 176, 182, 189, 196, 203, 211, 218, 225, 233, 241, 249,
+255, 249, 241, 233, 225, 218, 211, 203, 196, 189, 182, 176, 169, 163, 156, 150,
+144, 138, 132, 127, 121, 116, 110, 105, 100, 95, 90, 85, 81, 76, 72, 68};*/
 
 const uint8_t dark[3] = {0x00, 0x00, 0x00};
 const uint8_t bright[3] = {0xFF, 0xFF, 0xFF};
@@ -115,6 +128,35 @@ int main(void)
 			}
 			holdoff=500;
 			PORTA &= ~POWER;
+			
+			uint8_t done = 0;
+			cli();
+			uint32_t startTime = timer;
+			sei();
+			while(!done){
+				cli();
+				uint32_t time = timer;
+				sei();
+				if(time-startTime>250){
+					done=1;
+				}
+			}
+			
+			done = 0;
+			cli();
+			startTime = timer;
+			sei();
+			DDRB |= IR;//Set direction out
+			PORTB |= IR;//Set pin on
+			sendColor(LEDCLK, LEDDAT, transmitColor);
+			while(!done){
+				cli();
+				uint32_t time = timer;
+				sei();
+				if(time-startTime>500){
+					done=1;					
+				}				
+			}
 			enAD();
 			powerDownTimer = timer;
 			sleepTimer = timer;
@@ -155,10 +197,19 @@ int main(void)
 			}
 		
 			//periodically update LED once every 0x3F = 64 ms (fast enough to feel responsive)
+			cli();
 			if(!(timer & 0x3F)){
-				sendColor(LEDCLK, LEDDAT, colors[state]);
+				if(timer!=lastTime){
+					lastTime=timer;
+					cycleTimer++;
+					cycleTimer %= CYCLE_TIME;
+					uint8_t outColor[3] = {(colors[state][0]*breatheCycle[cycleTimer])/255, 
+										   (colors[state][1]*breatheCycle[cycleTimer])/255,
+										   (colors[state][2]*breatheCycle[cycleTimer])/255};
+					sendColor(LEDCLK, LEDDAT, outColor);
+				}
 			}
-			
+			sei();
 			//check if we enter sleep mode
 			cli();//temporarilly prevent interrupts to protect timer
 			if(timer-sleepTimer>1000*TIMEOUT){
