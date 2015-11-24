@@ -44,7 +44,7 @@ volatile static uint8_t soundEn = 1; //if true, react to sound
 uint8_t colors[][3] = //index corresponds to state
 {
 	{0x55,0x00,0x00},
-	{0x55,0x55,0x55},
+	{0x00,0x55,0xAA},
 	{0x7F,0x7F,0x00},
 	{0xAA,0x55,0x00},
 	{0xFF,0x00,0x00},
@@ -73,9 +73,18 @@ const uint8_t breatheCycle[] =
 144, 138, 132, 127, 121, 116, 110, 105, 100, 95, 90, 85, 81, 76, 72, 68};*/
 
 const uint8_t dark[3] = {0x00, 0x00, 0x00};
-const uint8_t bright[3] = {0xFF, 0xFF, 0xFF};
 const uint8_t recieveColor[3] = {0x00, 0x7F, 0x00};
 const uint8_t transmitColor[3] = {0xAA, 0x55, 0x00};
+	
+uint8_t bright(uint8_t val){
+	if(val >= 127){
+		return 255;
+	}
+	if(val == 0){
+		return 4;
+	}
+	return val<<1;
+}
 
 enum MODE
 {
@@ -121,7 +130,7 @@ int main(void)
 				cli();
 				uint32_t diff = timer-powerDownTimer;
 				sei();
-				if(diff>5000){
+				if(diff>500){
 					sleep_cpu();
 					wake = 1;
 				}
@@ -165,7 +174,8 @@ int main(void)
 			if(click){
 				uint8_t neighborStates[6];
 				getStates(neighborStates);
-				sendColor(LEDCLK, LEDDAT, bright);
+				uint8_t clickColor[] = {bright(colors[state][0]),bright(colors[state][1]),bright(colors[state][2])}; 
+				sendColor(LEDCLK, LEDDAT, clickColor);
 				uint8_t numOn = 0;
 
 				sync = 3;//request sync pulse be sent at next possible opportunity (set to 4 for logistical reasons)
@@ -192,7 +202,7 @@ int main(void)
 				//End logic
 
 				//prevent another click from being detected for a bit
-				holdoff = 500;
+				holdoff = 100;
 				click = 0;
 			}
 		
