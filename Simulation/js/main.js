@@ -315,6 +315,10 @@ $(function () {
                     population[idx].setState((population[idx].state + 1) % 2);
                     invert(idx);
                 }
+                else if (e.metaKey) {
+                    // switch species type
+                    population[idx].setSpeciesType((population[idx].speciesType+ 1) % 3);
+                }
                 else {
                     population[idx].setState((population[idx].state + 1) % 2);
                 }
@@ -349,6 +353,7 @@ $(function () {
 
                 for (var i = 0; i < ROWS * COLS; i++) {
                     population[i].update();
+                    population[i].draw();
                 }
 
             })

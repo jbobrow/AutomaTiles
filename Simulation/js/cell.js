@@ -1,6 +1,12 @@
 var rad3 = Math.sqrt(3);
 var EASEVAL = .1;
 
+//enum Species {
+//  'Grasshopper',
+//      'Bee',
+//      'Lady Bug'
+//};
+
 Cell = function (i) {
     this.index = i;
 
@@ -18,6 +24,8 @@ Cell = function (i) {
     this.state = 0;
     this.nextState = 0;
     this.isPresent = false;
+
+    this.speciesType = 0;
 
     this.neighbors = [];
 
@@ -298,6 +306,10 @@ Cell.prototype = {
         this.nextState = state;
     },
 
+    setSpeciesType: function (type) {
+        this.speciesType = type;
+    },
+
     update: function () {
         // update the position of the shape
         // console.log("target position x: " + this.targetPosition.x);
@@ -360,7 +372,17 @@ Cell.prototype = {
                 this.shape.fill = settings.color_neighbor_on;
             }
             else {
-                this.shape.fill = this.colorOn;
+                // be the color of your species in the on state
+                if (this.speciesType == 0) {
+                    this.shape.fill = '#00FFFF';
+                }
+                else if (this.speciesType == 1) {
+                    this.shape.fill = '#FFFF00';
+                }
+                else if (this.speciesType == 2) {
+                    this.shape.fill = '#FF00FF';
+                }
+                //this.shape.fill = this.colorOn;
             }
         }
         else if (this.state == 0) {
@@ -378,7 +400,17 @@ Cell.prototype = {
     },
 
     draw: function () {
-
+        if(this.isPresent) {
+            if (this.speciesType == 0) {
+                this.shape.stroke = '#00FFFF';
+            }
+            else if (this.speciesType == 1) {
+                this.shape.stroke = '#FFFF00';
+            }
+            else if (this.speciesType == 2) {
+                this.shape.stroke = '#FF00FF';
+            }
+        }
     }
 
 }
