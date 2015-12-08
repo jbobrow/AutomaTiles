@@ -47,37 +47,6 @@ Cell = function (i) {
 }
 
 Cell.prototype = {
-    init: function (i) {
-        this.index = i;
-        this.side = settings.side_length;
-        this.position = {x: 0, y: 0};
-        this.targetPosition = {x: 0, y: 0};
-
-        this.colorOn = '#ffffff';
-        this.colorOff = '#000000';
-
-        this.currentShape = 'hexagon';
-        this.state = 0;
-        this.nextState = 0;
-
-        this.neighbors = [];
-
-        // create the six points to be updated for each shape
-        var points = [
-            new Two.Anchor(0, 0),
-            new Two.Anchor(side, 0),
-            new Two.Anchor(side * 3 / 2, side * rad3 / 2),
-            new Two.Anchor(side, side * rad3),
-            new Two.Anchor(0, side * rad3),
-            new Two.Anchor(-side / 2, side * rad3 / 2)
-        ];
-        this.shape = two.makePolygon(points);
-        this.shape.translation.set(300, 100);
-        this.shape.stroke = '#ffffff';
-        this.shape.fill = this.colorOff;
-
-        this.targetVertices = [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}];
-    },
 
     setSideLength: function (side_length) {
         this.side = side_length;

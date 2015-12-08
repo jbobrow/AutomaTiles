@@ -289,8 +289,7 @@ $(function () {
     });
 
     two.appendTo(document.getElementById("two"));
-
-
+    
     for (var i = 0; i < ROWS * COLS; i++) {
         population.push(new Cell(i));
         population[i].setShape('hexagon');
