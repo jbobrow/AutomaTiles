@@ -213,37 +213,41 @@ ISR(TIM0_COMPA_vect){
 		PORTB &= ~IR;//Set pin tristated
 	}else if(mode==sleep){
 		uint32_t diff = timer-powerDownTimer;
-		if(diff>500){
+		uint32_t startDiff = timer-startTime;
+		if(diff>500 && wake==0){
 			sei();
 			sleep_cpu();
 			cli();
 			wake = 1;
+			sleepTimer = timer;
 		}
-		if(wake == 1){
-			holdoff=500;
+		if(wake == 1){			
 			startTime = timer;
 			PORTA &= ~POWER;
 			wake = 2;
-		}else if (wake == 2)
-		{
-			if(timer-startTime>250){
+		}
+		if (wake == 2){
+			if(startDiff>250){
 				wake=3;
 			}
-		}else if (wake == 3)
-		{
+		}
+		if (wake == 3){
 			DDRB |= IR;//Set direction out
 			PORTB |= IR;//Set pin on
 			sendColor(LEDCLK, LEDDAT, transmitColor);
 			startTime = timer;
 			wake = 4;
-		}else if(wake == 4){
-			if(timer-startTime>500){
+		}
+		if(wake == 4){
+			if(startDiff>500){
 				wake=5;
 			}
-		}else if(wake == 5){
+		}
+		if(wake == 5){
 			enAD();
 			powerDownTimer = timer;
 			sleepTimer = timer;
+			holdoff=500;
 			mode = running;
 		}
 	}
