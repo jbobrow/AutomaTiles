@@ -122,6 +122,12 @@
     <Compile Include="APA102C.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="AutomaTiles.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="AutomaTiles.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="AutomaTilesMain.c">
       <SubType>compile</SubType>
     </Compile>
