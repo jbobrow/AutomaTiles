@@ -13,10 +13,12 @@ typedef void (*cb_func)(void);
 
 void tileSetup(void);
 void getStates(uint8_t * result);
+void sendClick(void);
+uint32_t getTimer(void);
 void setColor(const uint8_t color[3]);
 void setClickCB(cb_func cb);
 void setButtonCB(cb_func cb);
-void setTimeout(uint8_t t);
+void setTimeout(uint8_t seconds);
 
 
 #endif /* AUTOMATILES_H_ */

@@ -25,7 +25,7 @@ volatile static uint32_t times[6][4];//ring buffer for holding leading  detectio
 volatile static uint8_t timeBuf[6];//ring buffer indices
 volatile static uint8_t soundEn = 1; //if true, react to sound
 
-const uint32_t TIMEOUT = 20;
+static uint32_t timeout = 20;
 volatile static uint32_t startTime = 0;
 volatile static uint32_t sleepTimer = 0;
 volatile static uint32_t powerDownTimer = 0;
@@ -91,6 +91,20 @@ void getStates(uint8_t * result){
 	sei();//Re-enable interrupts
 }
 
+uint32_t getTimer(){
+	return timer;
+}
+
+void sendClick(){
+	sync = 3;
+}
+
+void setTimeout(uint8_t seconds){
+	if(seconds>0){
+		timeout = seconds;
+	}
+}
+
 void tileSetup(void){
 	//Initialization routines
 	initIO();
@@ -142,7 +156,7 @@ ISR(TIM0_COMPA_vect){
 	static uint8_t sendState = 0;//State currently being sent. only updates on pulse to ensure accurate states are sent
 	timer++;
 	
-	if(timer-sleepTimer>1000*TIMEOUT){
+	if(timer-sleepTimer>1000*timeout){
 		mode = sleep;
 		disAD();
 		DDRB &= ~IR;//Set direction in
@@ -208,9 +222,6 @@ ISR(TIM0_COMPA_vect){
 				}
 			}
 		}
-	}else if(mode == recieving){//recieving data, ensure led off
-		DDRB &= ~IR;//Set direction in
-		PORTB &= ~IR;//Set pin tristated
 	}else if(mode==sleep){
 		uint32_t diff = timer-powerDownTimer;
 		uint32_t startDiff = timer-startTime;
@@ -225,25 +236,21 @@ ISR(TIM0_COMPA_vect){
 			startTime = timer;
 			PORTA &= ~POWER;
 			wake = 2;
-		}
-		if (wake == 2){
+		}else if (wake == 2){
 			if(startDiff>250){
 				wake=3;
 			}
-		}
-		if (wake == 3){
+		}else if (wake == 3){
 			DDRB |= IR;//Set direction out
 			PORTB |= IR;//Set pin on
 			sendColor(LEDCLK, LEDDAT, transmitColor);
 			startTime = timer;
 			wake = 4;
-		}
-		if(wake == 4){
+		}else if(wake == 4){
 			if(startDiff>500){
 				wake=5;
 			}
-		}
-		if(wake == 5){
+		}else if(wake == 5){
 			enAD();
 			powerDownTimer = timer;
 			sleepTimer = timer;
@@ -264,7 +271,6 @@ ISR(PCINT1_vect){
 ISR(PCINT0_vect){
 	static uint8_t prevVals = 0; //stores the previous state so that only what pins are newly on are checked
 	static uint8_t pulseCount[6]; //stores counted pulses for various actions
-	static uint32_t oldTime = 0; //stored the previous time for data transmission
 	uint8_t vals = PINA & 0x3f; //mask out phototransistors
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
 	
@@ -278,15 +284,12 @@ ISR(PCINT0_vect){
 					if(pulseCount[i]==2){
 						if(holdoff==0){
 							click = 1;
+							sync = 3;
 							wake = 1;
 							sleepTimer = timer;
 						}
 					}
-					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.
-						mode = recieving;
-						progDir = i;
-					}
-					}else{//Normally timed pulse, process normally
+				}else{//Normally timed pulse, process normally
 					pulseCount[i]=0;
 					timeBuf[i]++;
 					timeBuf[i] &= 0x03;
@@ -294,24 +297,8 @@ ISR(PCINT0_vect){
 				}
 			}
 		}
-	}else if(mode==recieving){
-		if(((prevVals^vals)&(1<<progDir))){//programming pin has changed
-			if(timer-oldTime > (3*PULSE_WIDTH)/2){//an edge we care about
-				if(timer-oldTime > 4*PULSE_WIDTH){//first bit. use for sync
-					bitsRcvd = 0;
-					for(int i = 0; i < 64; i++){//zero out buffer
-						comBuf[i]=0;
-					}
-				}
-				oldTime = timer;
-				if(bitsRcvd<64*8){
-					uint8_t bit = ((vals&(1<<progDir))>>progDir);
-					comBuf[bitsRcvd/8] |= bit<<(bitsRcvd%8);
-					bitsRcvd++;
-				}
-			}
-		}
 	}
+	
 	prevVals = vals;
 }
 
@@ -359,6 +346,7 @@ ISR(ADC_vect){
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 16, an exceptional event is needed.
 			if(soundEn){
 				click = delta;//Board triggered click as soon as it could (double steps)
+				sync = 3;
 				cli();
 				sleepTimer = timer;
 				sei();

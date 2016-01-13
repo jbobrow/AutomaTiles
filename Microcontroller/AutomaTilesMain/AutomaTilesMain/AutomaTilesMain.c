@@ -60,7 +60,6 @@ int main(void)
 	setClickCB(click);
 		
     while(1)
-
     {	
 		/*if(mode==running){
 			if(click){
