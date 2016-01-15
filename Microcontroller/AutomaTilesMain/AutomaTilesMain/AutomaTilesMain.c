@@ -46,21 +46,39 @@ uint8_t bright(uint8_t val){
 uint8_t red[] = {0xFF, 0x00, 0x00};
 void button(){
 	setColor(red);
+	setState(1);
 }
 
 uint8_t blue[] = {0x00, 0x00, 0xFF};
 void click(){
 	setColor(blue);
+	setState(0);
 }
 
 int main(void)
 {
 	tileSetup();
+	setTimeout(60);
 	setButtonCB(button);
 	setClickCB(click);
-		
+	uint8_t states[6];
     while(1)
     {	
+		getStates(states);
+		uint8_t count = 0;
+		for(int i = 0; i < 6; i++){
+			if(states[i]){
+				count++;
+			}
+		}
+		if(count>=3){
+			uint32_t st = getTimer();
+			uint32_t t = st;
+			while(t-st<100){
+				t = getTimer();
+			}
+			sendClick();
+		}
 		/*if(mode==running){
 			if(click){
 				uint8_t neighborStates[6];

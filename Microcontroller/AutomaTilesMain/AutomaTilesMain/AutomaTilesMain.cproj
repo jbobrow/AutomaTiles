@@ -53,7 +53,6 @@
     <com_atmel_avrdbg_tool_atmelice>
       <ToolOptions>
         <InterfaceProperties>
-          <DebugWireClockDiv>8000</DebugWireClockDiv>
         </InterfaceProperties>
         <InterfaceName>debugWIRE</InterfaceName>
       </ToolOptions>

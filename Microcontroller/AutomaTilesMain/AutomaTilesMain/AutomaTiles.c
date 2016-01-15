@@ -92,17 +92,28 @@ void getStates(uint8_t * result){
 }
 
 uint32_t getTimer(){
-	return timer;
-}
-
-void sendClick(){
-	sync = 3;
+	cli();
+	uint32_t t = timer;
+	sei();
+	return t;
 }
 
 void setTimeout(uint8_t seconds){
 	if(seconds>0){
 		timeout = seconds;
 	}
+}
+
+void setState(uint8_t newState){
+	if (newState<16)
+	{
+		state = newState;
+	}
+	
+}
+
+uint8_t getState(){
+	return state;
 }
 
 void tileSetup(void){
@@ -144,10 +155,26 @@ void setClickCB(cb_func cb){
 void setButtonCB(cb_func cb){
 	buttonCB = cb;
 }
-//onClick
-//onPress
-//data[]
 
+void sendClick(){
+	cli();
+	uint32_t t = timer;
+	sei();
+	uint32_t st = t;
+	uint8_t done = 0;
+	sync = 3;
+	holdoff = 200;
+	
+	while(!done){
+		cli();
+		t = timer;
+		sei();
+		if(t-st>100){
+			done = 1;
+		}
+	}
+	clickCB();
+}
 
 //Timer interrupt occurs every 1 ms
 //Increments timer and controls IR LEDs to keep their timing consistent
@@ -218,7 +245,7 @@ ISR(TIM0_COMPA_vect){
 						sleepTimer = timer;
 						powerDownTimer = timer;
 					}
-					holdoff = 500;//debounce and hold state until released
+					holdoff = 200;//debounce and hold state until released
 				}
 			}
 		}

@@ -16,6 +16,8 @@ void getStates(uint8_t * result);
 void sendClick(void);
 uint32_t getTimer(void);
 void setColor(const uint8_t color[3]);
+void setState(uint8_t state);
+uint8_t getState(void);
 void setClickCB(cb_func cb);
 void setButtonCB(cb_func cb);
 void setTimeout(uint8_t seconds);
