@@ -21,6 +21,6 @@ uint8_t getState(void);
 void setClickCB(cb_func cb);
 void setButtonCB(cb_func cb);
 void setTimeout(uint8_t seconds);
-
+void setMic(uint8_t enabled);
 
 #endif /* AUTOMATILES_H_ */

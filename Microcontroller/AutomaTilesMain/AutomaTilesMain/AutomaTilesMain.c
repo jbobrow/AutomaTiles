@@ -10,49 +10,80 @@
 
 #include "AutomaTiles.h"
 
-// init to the default rulestate for automatiles
-volatile static uint8_t birthRules[7] = {0,0,1,1,0,0,0}; // if true, should be born
-volatile static uint8_t deathRules[7] = {1,1,0,0,1,1,1}; // if true, should die (gotta find a better metaphor, this is too sad)
-volatile static uint8_t numStates = 2; // sets the age of an automatile
-
-uint8_t colors[][3] = //index corresponds to state
-{
-	{0x55,0x00,0x00},
-	{0x00,0x55,0xAA},
-	{0x7F,0x7F,0x00},
-	{0xAA,0x55,0x00},
-	{0xFF,0x00,0x00},
-	{0xAA,0x00,0x55},
-	{0x7F,0x00,0x7F},
-	{0x55,0x00,0xAA},
-	{0x00,0x00,0xFF},
-	{0x00,0x55,0xAA},
-	{0x00,0x7F,0x7F},
-	{0x00,0xAA,0x55},		
-	{0x00,0xFF,0x00},
-	{0x55,0xAA,0x00}
+const uint8_t colors[48][3] = {
+	{0x00, 0x00, 0xFF},
+	{0x00, 0x10, 0xF0},
+	{0x00, 0x20, 0xE0},
+	{0x00, 0x30, 0xD0},
+	{0x00, 0x40, 0xC0},
+	{0x00, 0x50, 0xB0},
+	{0x00, 0x60, 0xA0},
+	{0x00, 0x70, 0x90},
+	{0x00, 0x80, 0x80},
+	{0x00, 0x90, 0x70},
+	{0x00, 0xA0, 0x60},
+	{0x00, 0xB0, 0x50},
+	{0x00, 0xC0, 0x40},
+	{0x00, 0xD0, 0x30},
+	{0x00, 0xE0, 0x20},
+	{0x00, 0xF0, 0x10},
+	{0x00, 0xFF, 0x00},
+	{0x10, 0xF0, 0x00},
+	{0x20, 0xE0, 0x00},
+	{0x30, 0xD0, 0x00},
+	{0x40, 0xC0, 0x00},
+	{0x50, 0xB0, 0x00},
+	{0x60, 0xA0, 0x00},
+	{0x70, 0x90, 0x00},
+	{0x80, 0x80, 0x00},
+	{0x90, 0x70, 0x00},
+	{0xA0, 0x60, 0x00},
+	{0xB0, 0x50, 0x00},
+	{0xC0, 0x40, 0x00},
+	{0xD0, 0x30, 0x00},
+	{0xE0, 0x20, 0x00},
+	{0xF0, 0x10, 0x00},
+	{0xFF, 0x00, 0x00},
+	{0xF0, 0x00, 0x10},
+	{0xE0, 0x00, 0x20},
+	{0xD0, 0x00, 0x30},
+	{0xC0, 0x00, 0x40},
+	{0xB0, 0x00, 0x50},
+	{0xA0, 0x00, 0x60},
+	{0x90, 0x00, 0x70},
+	{0x80, 0x00, 0x80},
+	{0x70, 0x00, 0x90},
+	{0x60, 0x00, 0xA0},
+	{0x50, 0x00, 0xB0},
+	{0x40, 0x00, 0xC0},
+	{0x30, 0x00, 0xD0},
+	{0x20, 0x00, 0xE0},
+	{0x10, 0x00, 0xF0}
 };
 
-uint8_t bright(uint8_t val){
-	if(val >= 127){
-		return 255;
-	}
-	if(val == 0){
-		return 4;
-	}
-	return val<<1;
-}
+uint8_t color = 0;
+uint8_t inc = 1;
+uint32_t doubleTime = 0;
+uint8_t sent = 0;
 
-uint8_t red[] = {0xFF, 0x00, 0x00};
 void button(){
-	setColor(red);
 	setState(1);
+	inc = 29;
+	doubleTime = getTimer();
+	sent = 0;
 }
 
-uint8_t blue[] = {0x00, 0x00, 0xFF};
 void click(){
-	setColor(blue);
-	setState(0);
+	uint8_t states[6];
+	getStates(states);
+	uint8_t total = states[0]+states[1]+states[2]+states[3]+states[4]+states[5];
+	if (total>0&&getState()==0)
+	{
+		setState(1);
+		inc = 5;
+		doubleTime = getTimer();
+		sent = 0;
+	}
 }
 
 int main(void)
@@ -61,55 +92,43 @@ int main(void)
 	setTimeout(60);
 	setButtonCB(button);
 	setClickCB(click);
-	uint8_t states[6];
+	setMic(0);
+	
+	uint32_t tLast = getTimer();
+	uint32_t t = tLast;
+	uint8_t dim = 1;
     while(1)
     {	
-		getStates(states);
-		uint8_t count = 0;
-		for(int i = 0; i < 6; i++){
-			if(states[i]){
-				count++;
+		t = getTimer();
+		if (t-tLast>100)
+		{
+			color+=inc;
+			if (dim<32)
+			{
+				dim++;
+			}
+			
+			if (color>=48)
+			{
+				color=0;
+			}
+			setColor(colors[color]);
+			tLast=t;
+		}
+		
+		if(getState()==1){
+			dim = 0;
+			if (t-doubleTime>2000)
+			{
+				inc = 1;
+				setState(0);
+			}
+			
+			if(t-doubleTime>1000&&sent==0){
+				sendClick();
+				sent=1;
 			}
 		}
-		if(count>=3){
-			uint32_t st = getTimer();
-			uint32_t t = st;
-			while(t-st<100){
-				t = getTimer();
-			}
-			sendClick();
-		}
-		/*if(mode==running){
-			if(click){
-				uint8_t neighborStates[6];
-				getStates(neighborStates);
-				uint8_t clickColor[] = {bright(colors[state][0]),bright(colors[state][1]),bright(colors[state][2])}; 
-				sendColor(LEDCLK, LEDDAT, clickColor);
-				uint8_t numOn = 0;
-
-				sync = 3;//request sync pulse be sent at next possible opportunity (set to 4 for logistical reasons)
-
-				for (uint8_t i = 0; i< 6; i++)
-				{
-					//at the moments specific state detection is a bit iffy, 
-					//so mapping any received state>1 to a state of 1 works for now
-					if(neighborStates[i]>0){
-						numOn++;
-					}	
-				}
-				//Logic for what to do to the state based on number of on neighbors
-				if(state == 0) {
-					if(birthRules[numOn]) {
-						state=1;
-					}
-				}
-				else {
-					if(deathRules[numOn]) {
-						state = (state + 1) % numStates;
-					}
-				}
-				//End logic
-			}
-		}*/
+		
 	}
 }

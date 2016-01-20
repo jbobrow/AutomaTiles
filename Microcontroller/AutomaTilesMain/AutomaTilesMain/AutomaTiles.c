@@ -59,7 +59,9 @@ enum MODE
  * Accuracy is traded for number of states (i.e. 5 states can be communicated reliably, while 10 with less robustness)
 */
 void getStates(uint8_t * result){
-	cli();//Disable interrupts to safely grab consistent timer value
+	uint8_t interrupts = SREG&1<<7;
+	
+	if(interrupts)cli();//Disable interrupts to safely grab consistent timer value
 	uint32_t curTime = timer;
 	uint32_t diffs[3];
 	for(uint8_t i = 0; i < 6; i++){
@@ -88,13 +90,15 @@ void getStates(uint8_t * result){
 			}
 		}
 	}	
-	sei();//Re-enable interrupts
+	if(interrupts)sei();//Re-enable interrupts
 }
 
 uint32_t getTimer(){
-	cli();
+	uint8_t interrupts = SREG&1<<7;
+	
+	if(interrupts)cli();
 	uint32_t t = timer;
-	sei();
+	if(interrupts)sei();
 	return t;
 }
 
@@ -114,6 +118,16 @@ void setState(uint8_t newState){
 
 uint8_t getState(){
 	return state;
+}
+
+void setMic(uint8_t enabled){
+	if (enabled>0)
+	{
+		soundEn = 1;	
+	}else{
+		soundEn = 0;
+	}
+	
 }
 
 void tileSetup(void){
