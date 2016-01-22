@@ -393,7 +393,7 @@ ISR(ADC_vect){
 				sei();
 			}
 		}
-		}else{
+	}else{
 		holdoff--;
 	}
 }
