@@ -58,8 +58,23 @@ enum MODE
  * difference is found, that translates directly to a state
  * Accuracy is traded for number of states (i.e. 5 states can be communicated reliably, while 10 with less robustness)
 */
-void getStates(uint8_t * result){
+void getNeighborStates(uint8_t * result){
 	uint8_t interrupts = SREG&1<<7;
+	
+	/*if(interrupts)cli();
+	uint32_t t = timer;
+	if(interrupts)sei();
+	uint32_t st = t;
+	uint8_t done = 0;
+	
+	while(!done){
+		cli();
+		t = timer;
+		sei();
+		if(t-st>100){
+			done = 1;
+		}
+	}	*/
 	
 	if(interrupts)cli();//Disable interrupts to safely grab consistent timer value
 	uint32_t curTime = timer;
@@ -102,10 +117,9 @@ uint32_t getTimer(){
 	return t;
 }
 
-void setTimeout(uint8_t seconds){
-	if(seconds>0){
-		timeout = seconds;
-	}
+void setTimeout(uint16_t seconds){
+	timeout = seconds;
+
 }
 
 void setState(uint8_t newState){
@@ -120,14 +134,12 @@ uint8_t getState(){
 	return state;
 }
 
-void setMic(uint8_t enabled){
-	if (enabled>0)
-	{
-		soundEn = 1;	
-	}else{
-		soundEn = 0;
-	}
-	
+void setMicOn(){
+	soundEn = 1;	
+}
+
+void  setMicOff(){
+	soundEn = 0;
 }
 
 void tileSetup(void){
@@ -154,7 +166,9 @@ void emptyCB(void){
 
 cb_func clickCB = emptyCB;
 cb_func buttonCB = emptyCB;
-cb_func pulseCB = emptyCB;
+cb_func timerCB = emptyCB;
+volatile uint16_t timerCBcount = 0;
+volatile uint16_t timerCBtime = UINT16_MAX;
 
 void setColor(const uint8_t color[3]){
 	outColor[0] = color[0];
@@ -162,15 +176,26 @@ void setColor(const uint8_t color[3]){
 	outColor[2] = color[2];
 }
 
-void setClickCB(cb_func cb){
+void setStepCallback(cb_func cb){
 	clickCB = cb;
 }
 
-void setButtonCB(cb_func cb){
+void setButtonCallback(cb_func cb){
 	buttonCB = cb;
 }
 
-void sendClick(){
+void setTimerCallback(cb_func cb, uint16_t t){
+	timerCB = cb;
+	timerCBcount = 0;
+	timerCBtime = t;
+}
+
+void setTimerCallbackTime(uint16_t t){
+	timerCBcount = 0;
+	timerCBtime = t;
+}
+
+void sendStep(){
 	cli();
 	uint32_t t = timer;
 	sei();
@@ -196,17 +221,13 @@ ISR(TIM0_COMPA_vect){
 	static uint8_t IRcount = 0;//Tracks cycles for accurate IR LED timing
 	static uint8_t sendState = 0;//State currently being sent. only updates on pulse to ensure accurate states are sent
 	timer++;
-	
-	if(timer-sleepTimer>1000*timeout){
-		mode = sleep;
-		disAD();
-		DDRB &= ~IR;//Set direction in
-		PORTB &= ~IR;//Set pin tristated
-		sendColor(LEDCLK, LEDDAT, dark);
-		PORTA |= POWER;//Set LED and Mic power pin high (off)
-		wake = 0;
+		
+	timerCBcount++;
+	if(timerCBcount >= timerCBtime){
+		timerCB();
+		timerCBcount = 0;	
 	}
-	
+		
 	if(mode==running){
 		//periodically update LED once every 0x3F = 64 ms (fast enough to feel responsive)
 		if(!(timer & 0x3F)){
@@ -231,24 +252,24 @@ ISR(TIM0_COMPA_vect){
 		if(IRcount==5){
 			PORTB |= IR;
 			DDRB |= IR;
-			}else if(IRcount==7&&sync>1){
+		}else if(IRcount==7&&sync>1){
 			PORTB |= IR;
 			DDRB |= IR;
 			sync = 1;
-			}else if(IRcount==9&&sync==1){
+		}else if(IRcount==9&&sync==1){
 			PORTB |= IR;
 			DDRB |= IR;
 			sync = 0;
-			}else if(sendState==0&&sync>0){//0 case is special
+		}else if(sendState==0&&sync>0){//0 case is special
 			if((IRcount&0x01)!=0){
 				PORTB |= IR;
 				DDRB |= IR;
 				sync -= 1;
-				}else{
+			}else{
 				DDRB &= ~IR;//Set direction in
 				PORTB &= ~IR;
 			}
-			}else{
+		}else{
 			DDRB &= ~IR;//Set direction in
 			PORTB &= ~IR;//Set pin tristated
 			
@@ -261,6 +282,18 @@ ISR(TIM0_COMPA_vect){
 					}
 					holdoff = 200;//debounce and hold state until released
 				}
+			}
+		}
+		
+		if(timeout>0){
+			if(timer-sleepTimer>1000*timeout){
+				mode = sleep;
+				disAD();
+				DDRB &= ~IR;//Set direction in
+				PORTB &= ~IR;//Set pin tristated
+				sendColor(LEDCLK, LEDDAT, dark);
+				PORTA |= POWER;//Set LED and Mic power pin high (off)
+				wake = 0;
 			}
 		}
 	}else if(mode==sleep){
@@ -288,10 +321,16 @@ ISR(TIM0_COMPA_vect){
 			startTime = timer;
 			wake = 4;
 		}else if(wake == 4){
-			if(startDiff>500){
-				wake=5;
-			}
+			PORTB &= !IR;
+			wake = 5;
 		}else if(wake == 5){
+			PORTB |= IR;
+			wake = 6;
+		}else if(wake == 6){
+			if(startDiff>500){
+				wake=7;
+			}
+		}else if(wake == 7){
 			enAD();
 			powerDownTimer = timer;
 			sleepTimer = timer;
@@ -304,7 +343,8 @@ ISR(TIM0_COMPA_vect){
 
 //INT0 interrupt triggered when the pushbutton is pressed
 ISR(PCINT1_vect){
-	wake = 1;
+	if((DDRB & BUTTON)==0)
+		wake = 1;
 }
 
 //Pin Change 0 interrupt triggered when any of the phototransistors change level
@@ -317,25 +357,24 @@ ISR(PCINT0_vect){
 	
 	powerDownTimer = timer;
 	
-	if(mode==running){
-		for(uint8_t i = 0; i < 6; i++){
-			if(newOn & 1<<i){ //if an element is newly on,
-				if(timer-times[i][timeBuf[i]]<10){//This is a rapid pulse. treat like a click
-					pulseCount[i]++;
-					if(pulseCount[i]==2){
-						if(holdoff==0){
-							click = 1;
-							sync = 3;
-							wake = 1;
-							sleepTimer = timer;
-						}
+	
+	for(uint8_t i = 0; i < 6; i++){
+		if(newOn & 1<<i){ //if an element is newly on,
+			if(timer-times[i][timeBuf[i]]<10){//This is a rapid pulse. treat like a click
+				pulseCount[i]++;					
+				wake = 1;
+				if(pulseCount[i]==2){
+					if(holdoff==0){
+						click = 1;
+						sync = 3;
+						sleepTimer = timer;
 					}
-				}else{//Normally timed pulse, process normally
-					pulseCount[i]=0;
-					timeBuf[i]++;
-					timeBuf[i] &= 0x03;
-					times[i][timeBuf[i]] = timer;
 				}
+			}else{//Normally timed pulse, process normally
+				pulseCount[i]=0;
+				timeBuf[i]++;
+				timeBuf[i] &= 0x03;
+				times[i][timeBuf[i]] = timer;
 			}
 		}
 	}

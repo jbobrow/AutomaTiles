@@ -73,9 +73,9 @@ void button(){
 	sent = 0;
 }
 
-void click(){
+void step(){
 	uint8_t states[6];
-	getStates(states);
+	getNeighborStates(states);
 	uint8_t total = states[0]+states[1]+states[2]+states[3]+states[4]+states[5];
 	if (total>0&&getState()==0)
 	{
@@ -90,9 +90,9 @@ int main(void)
 {
 	tileSetup();
 	setTimeout(60);
-	setButtonCB(button);
-	setClickCB(click);
-	setMic(0);
+	setButtonCallback(button);
+	setStepCallback(step);
+	setMicOff();
 	
 	uint32_t tLast = getTimer();
 	uint32_t t = tLast;
@@ -126,10 +126,9 @@ int main(void)
 			}
 			
 			if(t-doubleTime>1000&&sent==0){
-				sendClick();
+				sendStep();
 				sent=1;
 			}
-		}
-		
+		}		
 	}
 }
