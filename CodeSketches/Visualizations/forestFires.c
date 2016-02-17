@@ -1,14 +1,30 @@
-// Basic sketch to test 3 state AutomaTiles
-// rock, paper, scissors
-// turn into the domininant type if surrounded
+/*	Forest Fire (Simulation/Visualization)
+ *	
+ *	Summary: each tile simulates a single tree and lives happily unless
+ *	         struck by lightning or catching a spark of a neighboring fire
+ *
+ *	Rules: Based on Nicky Case's Simulating the World in Emoji
+ *
+ *	Dirt: % chance turning into a tree (10% in this case) to simulate growth
+ *	      Display dim color (emberlike)
+ *	Tree: If neighbor is on fire, % chance turning into fire
+ *	      Display green     
+ *	Fire: % chance turning into dirt (50% in this case) to simulate burning out (running out of fuel)
+ *	      Display red/orange
+ *	Lightning: Occur on button press, turn tree to fire
+ *	      Display a flash or flashes of bright white
+ *
+ *	by Jonathan Bobrow
+ *	01.2016
+ */
 
 #include "AutomaTiles.h"
 
 uint8_t neighbors[6];
 uint8_t colors[4][3] = {{51,26,0},         // Dead Tree
-                         {26,255,0},        // Alive Tree
-                         {255,153,26},        // Fire
-                         {204,204,255}};     // Lightning
+                         {26,255,0},       // Alive Tree
+                         {255,153,26},     // Fire
+                         {204,204,255}};   // Lightning
 
 uint8_t bLightning = 0;
 uint16_t lightningDelay = 500;
@@ -41,7 +57,7 @@ void step() {
                break;
           case 2: 
                if(getTimer()%2==0)
-                    setState(0);   // burn out
+                    setState(0);   // burn out with 50% probability
                break;
           default: break;
      }
