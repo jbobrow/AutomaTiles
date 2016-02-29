@@ -29,20 +29,23 @@ uint8_t possibleDiversityValue;
 
 uint8_t neighbors[6];
 
-uint8_t colors[6][3] = {{255,0,0},			// Red
-                         {0,255,0},			// Green
-                         {0,0,255},			// Blue
-                         {255,0,255},		// Magenta
-                         {255,255,0},		// Yellow
-                         {0,255,255}};		// Cyan
+uint8_t colors[6][3] = {{255,0,0},          // Red
+                         {0,255,0},         // Green
+                         {0,0,255},         // Blue
+                         {255,0,255},       // Magenta
+                         {255,255,0},       // Yellow
+                         {0,255,255}};      // Cyan
 
-uint8_t darkColor[3] = {0,0,0};				// blink off color
+// blink off color
+uint8_t darkColor[3] = {0,0,0};
 
-uint8_t outputColor[3];						// the color we will actually show
+// the color we will actually show
+uint8_t outputColor[3];
 
-uint8_t minNeighbors = 2;					// minimum number of neighbors present
-											// to be happy at all (i.e. tiles with only 
-											// one neighbor, feel left out) 
+// minimum number of neighbors present
+// to be happy at all (i.e. tiles with only 
+// one neighbor, feel left out)
+uint8_t minNeighbors = 2; 
 
 // this gets triggered when we press the button
 void button() {
