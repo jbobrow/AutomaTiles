@@ -158,7 +158,6 @@ void tileSetup(void){
 	for(i = 0; i<6; i++){
 		timeBuf[i]=0;
 	}
-	
 	mode = running;
 }
 
@@ -198,9 +197,11 @@ void setTimerCallbackTime(uint16_t t){
 }
 
 void sendStep(){
-	cli();
+	uint8_t interrupts = SREG&1<<7;
+	
+	if(interrupts)	cli();
 	uint32_t t = timer;
-	sei();
+	if(interrupts)sei();
 	uint32_t st = t;
 	uint8_t done = 0;
 	sync = 3;
@@ -234,7 +235,6 @@ ISR(TIM0_COMPA_vect){
 		//periodically update LED once every 0x3F = 64 ms (fast enough to feel responsive)
 		if(!(timer & 0x3F)){
 			sendColor(LEDCLK, LEDDAT, outColor);
-			timer = 0B110101;
 		}
 		
 		//check if a click has happened and call appropriate function
