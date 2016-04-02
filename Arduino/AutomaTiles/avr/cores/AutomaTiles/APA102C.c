@@ -47,11 +47,6 @@ void sendColor(uint8_t clkPin, uint8_t datPin,const uint8_t color[3]){
 	if(!portSet){
 		return;
 	}
-	
-	uint8_t interrupts = SREG&1<<7;//Check if interrupts are enabled
-	
-	//Disable interrupts
-	if(interrupts)cli();
 	//Start Frame
 	sendByte(clkPin, datPin, 0x00);
 	sendByte(clkPin, datPin, 0x00);
@@ -62,6 +57,4 @@ void sendColor(uint8_t clkPin, uint8_t datPin,const uint8_t color[3]){
 	sendByte(clkPin, datPin, color[2]);
 	sendByte(clkPin, datPin, color[1]);
 	sendByte(clkPin, datPin, color[0]);
-	//Re-enable interrupts
-	if(interrupts)sei();
 }

@@ -146,6 +146,22 @@ void setTimerCallbackTime(uint16_t t);
 void setTimeout(uint16_t seconds);
 void setMicOn();
 void setMicOff();
+extern volatile int16_t holdoff;
+extern uint8_t outColor[3];
+extern volatile uint8_t wake;
+
+enum MODE
+{
+	sleep,
+	running,
+	recieving,
+	transmitting
+};
+
+extern enum MODE mode;
+
+extern uint32_t timeout;
+extern volatile uint32_t sleepTimer;
 
 void setup(void);
 void loop(void);

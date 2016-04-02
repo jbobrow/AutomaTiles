@@ -13,10 +13,9 @@
 
 #include "Pins.h"
 #include "Inits.h"
-#include "APA102C.h"
 #include "AutomaTiles.h"
 
-volatile static int16_t holdoff = 2000;//for temporarily preventing click outputs
+volatile int16_t holdoff = 2000;//for temporarily preventing click outputs
 volatile static uint8_t click = 0;//becomes non-zero when a click is detected
 volatile static uint8_t sync = 0;//becomes non-zero when synchronization pulses need to be sent out
 volatile static uint8_t state = 0;//current state of tile
@@ -25,11 +24,11 @@ volatile static uint32_t times[6][4];//ring buffer for holding leading  detectio
 volatile static uint8_t timeBuf[6];//ring buffer indices
 volatile static uint8_t soundEn = 1; //if true, react to sound
 
-static uint32_t timeout = 20;
+uint32_t timeout = 20;
 volatile static uint32_t startTime = 0;
-volatile static uint32_t sleepTimer = 0;
+volatile uint32_t sleepTimer = 0;
 volatile static uint32_t powerDownTimer = 0;
-volatile static uint8_t wake = 0;
+volatile uint8_t wake = 0;
 
 const uint8_t PULSE_WIDTH = 8;//1/2 bit of manchester encoding, time in ms
 volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
@@ -40,7 +39,7 @@ volatile static uint16_t bitsRcvd = 0;//tracking number of bits received for ret
 const uint8_t dark[3] = {0x00, 0x00, 0x00};
 const uint8_t recieveColor[3] = {0x00, 0x7F, 0x00};
 const uint8_t transmitColor[3] = {0xAA, 0x55, 0x00};
-static uint8_t outColor[3] = {0x00, 0x00, 0xFF};
+uint8_t outColor[3] = {0x00, 0x00, 0xFF};
 
 enum MODE
 {
@@ -48,7 +47,8 @@ enum MODE
 	running,
 	recieving,
 	transmitting
-} mode;
+};
+enum MODE mode = running;
 
 /* Uses the current state of the times ring buffer to determine the states of neighboring tiles
  * For each side, to have a non-zero state, a pulse must have been received in the last 100 ms and two of the
@@ -287,18 +287,6 @@ ISR(TIM0_COMPA_vect){
 				}
 			}
 		}
-		
-		if(timeout>0){
-			if(timer-sleepTimer>1000*timeout){
-				mode = sleep;
-				disAD();
-				DDRB &= ~IR;//Set direction in
-				PORTB &= ~IR;//Set pin tristated
-				sendColor(LEDCLK, LEDDAT, dark);
-				PORTA |= POWER;//Set LED and Mic power pin high (off)
-				wake = 0;
-			}
-		}
 	}else if(mode==sleep){
 		uint32_t diff = timer-powerDownTimer;
 		uint32_t startDiff = timer-startTime;
@@ -397,7 +385,6 @@ ISR(ADC_vect){
 	uint8_t adc;
 	
 	adc = ADCH;// Record ADC value
-	sei(); //re-enable interrupts, allow this calculation to be interrupted
 	
 	//update running median. Error on high side.
 	//note that due to comparison, the median is scaled up by 2^8
@@ -421,21 +408,13 @@ ISR(ADC_vect){
 		medDelta++;
 	}
 	
-	if(holdoff<0){//edge case protection
-		holdoff = 0;
-	}
-	
 	if(holdoff == 0){//holdoff can be set elsewhere to disable click being set for a period of time
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 16, an exceptional event is needed.
 			if(soundEn){
 				click = delta;//Board triggered click as soon as it could (double steps)
 				sync = 3;
-				cli();
 				sleepTimer = timer;
-				sei();
 			}
 		}
-	}else{
-		holdoff--;
 	}
 }
