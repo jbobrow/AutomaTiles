@@ -30,6 +30,9 @@ volatile uint32_t sleepTimer = 0;
 volatile static uint32_t powerDownTimer = 0;
 volatile uint8_t wake = 0;
 
+volatile static uint16_t longPressTimer = 0;
+volatile static uint16_t longPressTime = 1000;//1 second default
+
 const uint8_t PULSE_WIDTH = 8;//1/2 bit of manchester encoding, time in ms
 volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
 volatile static uint8_t comBuf[64];//buffer for holding communicated messages when programming rules (oversized)
@@ -168,6 +171,7 @@ void emptyCB(void){
 cb_func clickCB = emptyCB;
 cb_func buttonCB = emptyCB;
 cb_func timerCB = emptyCB;
+cb_func longButtonCB = emptyCB;
 volatile uint16_t timerCBcount = 0;
 volatile uint16_t timerCBtime = UINT16_MAX;
 
@@ -183,6 +187,14 @@ void setStepCallback(cb_func cb){
 
 void setButtonCallback(cb_func cb){
 	buttonCB = cb;
+}
+
+void setLongButtonCallback(cb_func cb){
+	longButtonCB = cb;
+}
+
+void setLongButtonCallbackTimer(uint16_t ms){
+	longPressTime = ms;
 }
 
 void setTimerCallback(cb_func cb, uint16_t t){
@@ -232,11 +244,6 @@ ISR(TIM0_COMPA_vect){
 	}
 		
 	if(mode==running){
-		//periodically update LED once every 0x3F = 64 ms (fast enough to feel responsive)
-		if(!(timer & 0x3F)){
-			sendColor(LEDCLK, LEDDAT, outColor);
-		}
-		
 		//check if a click has happened and call appropriate function
 		if(click){
 			clickCB();
@@ -276,14 +283,24 @@ ISR(TIM0_COMPA_vect){
 			DDRB &= ~IR;//Set direction in
 			PORTB &= ~IR;//Set pin tristated
 			
+			 if(longPressTimer<longPressTime){//during long press wait
+				longPressTimer++;
+			 }
 			if(IRcount<5){
 				if(PINB & BUTTON){//Button active high
-					if(holdoff==0){
+					if(holdoff==0){//initial press
 						buttonCB();
 						sleepTimer = timer;
 						powerDownTimer = timer;
+						longPressTimer = 0;
+					}else{//during long press wait						
+						if(longPressTimer>=longPressTime){
+							longButtonCB();
+						}
 					}
 					holdoff = 200;//debounce and hold state until released
+				}else{//Button not down
+					longPressTimer = 0;
 				}
 			}
 		}
