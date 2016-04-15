@@ -28,4 +28,13 @@ void setTimeout(uint16_t seconds);
 void setMicOn();
 void setMicOff();
 
+#define PULSE_WIDTH 4
+extern volatile int16_t holdoff;
+extern uint8_t outColor[3];
+extern volatile uint8_t wake;
+
+volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
+volatile static uint8_t comBuf[65];//buffer for holding communicated messages when programming rules (oversized)
+volatile static uint16_t bitsRcvd = 0;//tracking number of bits received for retransmission/avoiding overflow
+
 #endif /* AUTOMATILES_H_ */

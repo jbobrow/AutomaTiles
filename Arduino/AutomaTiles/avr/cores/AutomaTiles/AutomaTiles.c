@@ -33,15 +33,8 @@ volatile uint8_t wake = 0;
 volatile static uint16_t longPressTimer = 0;
 volatile static uint16_t longPressTime = 1000;//1 second default
 
-const uint8_t PULSE_WIDTH = 8;//1/2 bit of manchester encoding, time in ms
-volatile static uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
-volatile static uint8_t comBuf[64];//buffer for holding communicated messages when programming rules (oversized)
-volatile static uint16_t bitsRcvd = 0;//tracking number of bits received for retransmission/avoiding overflow
-//static uint8_t seqNum = 0;//Sequence number used to prevent circular retransmission of data
-
 const uint8_t dark[3] = {0x00, 0x00, 0x00};
-const uint8_t recieveColor[3] = {0x00, 0x7F, 0x00};
-const uint8_t transmitColor[3] = {0xAA, 0x55, 0x00};
+const uint8_t wakeColor[3] = {0xAA, 0x55, 0x00};
 uint8_t outColor[3] = {0x00, 0x00, 0xFF};
 
 enum MODE
@@ -230,6 +223,14 @@ void sendStep(){
 	clickCB();
 }
 
+uint8_t getSharedData(uint8_t i){
+	if(i>=64){
+		return 0;
+	}
+	
+	return comBuf[i+1];
+}
+
 //Timer interrupt occurs every 1 ms
 //Increments timer and controls IR LEDs to keep their timing consistent
 ISR(TIM0_COMPA_vect){
@@ -325,7 +326,7 @@ ISR(TIM0_COMPA_vect){
 		}else if (wake == 3){
 			DDRB |= IR;//Set direction out
 			PORTB |= IR;//Set pin on
-			sendColor(LEDCLK, LEDDAT, transmitColor);
+			sendColor(LEDCLK, LEDDAT, wakeColor);
 			startTime = timer;
 			wake = 4;
 		}else if(wake == 4){
@@ -363,26 +364,51 @@ ISR(PCINT0_vect){
 	uint8_t vals = PINA & 0x3f; //mask out phototransistors
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
 	
-	powerDownTimer = timer;
-	
-	uint8_t i;
-	for(i = 0; i < 6; i++){
-		if(newOn & 1<<i){ //if an element is newly on,
-			if(timer-times[i][timeBuf[i]]<10){//This is a rapid pulse. treat like a click
-				pulseCount[i]++;					
-				wake = 1;
-				if(pulseCount[i]==2){
-					if(holdoff==0){
-						click = 1;
-						sync = 3;
-						sleepTimer = timer;
+	if(mode == running){
+		powerDownTimer = timer;
+		
+		uint8_t i;
+		for(i = 0; i < 6; i++){
+			if(newOn & 1<<i){ //if an element is newly on,
+				if(timer-times[i][timeBuf[i]]<10){//This is a rapid pulse. treat like a click
+					pulseCount[i]++;					
+					wake = 1;
+					if(pulseCount[i]==2){
+						if(holdoff==0){
+							click = 1;
+							sync = 3;
+							sleepTimer = timer;
+						}
 					}
+					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.							
+							mode = recieving;
+							progDir = i;
+					}
+				}else{//Normally timed pulse, process normally
+					pulseCount[i]=0;
+					timeBuf[i]++;
+					timeBuf[i] &= 0x03;
+					times[i][timeBuf[i]] = timer;
 				}
-			}else{//Normally timed pulse, process normally
-				pulseCount[i]=0;
-				timeBuf[i]++;
-				timeBuf[i] &= 0x03;
-				times[i][timeBuf[i]] = timer;
+			}
+		}	
+	}else if(mode == recieving){
+		uint32_t oldTime;
+		if(((prevVals^vals)&(1<<progDir))){//programming pin has changed
+			if(timer-oldTime > (3*PULSE_WIDTH)/2){//an edge we care about
+				if(timer-oldTime > 4*PULSE_WIDTH){//first bit. use for sync
+					bitsRcvd = 0;
+					int i;
+					for(i = 0; i < 65; i++){//zero out buffer
+						comBuf[i]=0;
+					}					
+				}
+				oldTime = timer;				
+				if(bitsRcvd<65*8){
+					uint8_t bit = ((vals&(1<<progDir))>>progDir);
+					comBuf[bitsRcvd/8] |= bit<<(bitsRcvd%8);
+					bitsRcvd++;
+				}				
 			}
 		}
 	}

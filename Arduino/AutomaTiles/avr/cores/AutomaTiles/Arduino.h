@@ -148,9 +148,7 @@ void setTimerCallbackTime(uint16_t t);
 void setTimeout(uint16_t seconds);
 void setMicOn();
 void setMicOff();
-extern volatile int16_t holdoff;
-extern uint8_t outColor[3];
-extern volatile uint8_t wake;
+uint8_t getSharedData(uint8_t i);
 
 enum MODE
 {
