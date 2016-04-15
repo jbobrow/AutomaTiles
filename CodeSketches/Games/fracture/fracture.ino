@@ -59,11 +59,11 @@ void step() {
 }
 
 void setup() {
-  setButtonCallback(button);  // setup a button handler
-  setStepCallback(step);      // setup a step handler
-  setState(1);                // set initial state
-  setMicOff();                // listen to step forward
-  setTimeout(3600);           // 1 hour
+  setLongButtonCallback(button);  // setup a button handler (only for long press
+  setStepCallback(step);          // setup a step handler
+  setState(1);                    // set initial state
+  setMicOff();                    // listen to step forward
+  setTimeout(3600);               // 1 hour
 }
 
 void loop() {
