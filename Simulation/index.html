@@ -10,12 +10,41 @@
 <body>
 <div id="two">
 </div>
+<div id="about">
+    <div class = "left-half">
+        <div id="logotype">
+            <h1>AutomaTiles</h1>
+            <h2><i>Life</i> Simulator</h2>
+        </div>
+        <h3>by Jonathan Bobrow</h3>
+        <p>AutomaTiles are a tangible cellular automata, which take on the form of hexagonal cells. Hexagons were chosen because they are the highest sided regularly tesselating convex shape, which means when they are physical objects, it is obvious who is neighbors with whom. This simulator enables users to add tiles to a hexagonal board, turn them on or off as in the Game of Life, adjust rulesets, play with colors, size, spacing and so on, to discover interesting patterns or emergent phenomena through cellular automata. The simulator started from a want to convert from a rectilinear grid to a hexagonal one, so have fun swapping coordinate systems as well.</p>
+        <div id="medialab">Playful Systems | MIT Media Lab</div>
+    </div>
+    <div class = "right-half">
+        <h3>Keyboard Shortcuts</h3>
+        <ul>
+            <li>Click + Shift = add/remove tile</li>
+            <li>Click = change state (i.e. on becomes off)</li>
+            <li>Click + Alt = invert state of tile and neighboring tiles (as in the <a href="https://en.wikipedia.org/wiki/Lights_Out_(game)">lights out game</a>)</li>
+            <li>Spacebar = play/pause (autostep)</li>
+            <li>Right Arrow = step forward</li>
+            <li>Up Arrow = speed up steps/sec</li>
+            <li>Down Arrow = slow down steps/sec</li>
+            <li>‘H’ = show/hide rules and control panel</li>
+        </ul>
+        <p>Note: Save in the bottom right saves an SVG to your computer, a tool I used for exporting generative imagery, and for large grids of hexagons when needed</p>
+        <button id="closeButton" onclick=hideAbout()>CLOSE</button>
+    </div>
+</div>
 <div id="buttons">
     <button onclick="makeTri()">triangle</button>
     <button onclick="makeSquare()">square</button>
     <button onclick="makeHex()">hexagon</button>
 </div>
 <div id="ruleset">
+    <div id="title">
+    <button id="showAboutButton" onclick=showAbout()>AutomaTiles - <span class="subtext"><i>Life</i> Simulator</span></button>
+    </div>
     <div id="label">
         <ul id=" birth_rules">
             <li class="rule_title">neighbors:</li>

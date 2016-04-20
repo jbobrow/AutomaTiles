@@ -2,7 +2,7 @@ var settings = new Settings();
 
 function Settings() {
     this.duration = 120;
-    this.side_length = 20;
+    this.side_length = 40;
     this.stroke_width = 4;
 
     this.color_state_on = '#ff0000';
@@ -54,6 +54,11 @@ function Settings() {
         // make all tiles not present
         selectRandomTiles();
     };
+
+    this.about = function () {
+        // show about screen
+        showAbout();
+    }
 }
 
 /* visible control panel */
@@ -96,6 +101,7 @@ f3.add(settings, 'allNotPresent');
 f3.add(settings, 'randomSelect');
 f3.closed = true;
 
+gui.add(settings, 'about');
 //gui.add(settings, 'save');
 
 // handle color change

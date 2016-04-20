@@ -12,6 +12,94 @@ body {
 	z-index: 0;
 }
 
+#about {
+	visibility: visible;
+	z-index: 101;
+	position: relative;
+	width: 800px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 5%;
+	padding: 20px;
+	background: rgba(0,0,0,0.9);
+	color: white;
+	border-radius: 5px;
+}
+
+#about h1 {
+	margin-top: 20px;
+}
+
+#about h2 {
+	line-height: 1.5em;
+}
+
+#about h3 {
+	line-height: 1.5em;
+}
+
+#about p {
+	margin-top: 20px;
+	font-weight: lighter;
+	font-size: 0.9em;
+	line-height: 1.5em;
+}
+
+#about ul {
+	list-style: none;
+}
+
+#about li {
+	font-weight: lighter;
+	line-height: 1.5em;
+	padding: 4px 0;
+}
+
+#about a:link, a:visited, a:hover, a:active{
+	text-decoration: none;
+	color: white;
+	font-weight: 800;
+}
+
+#closeButton {
+	display: inline-block;
+	border-radius: 0;
+	border: 1px solid white;
+	margin-top: 20px;
+	padding: 10px;
+	color: white;
+	background: rgba(0,0,0,0);
+}
+
+#showAboutButton {
+	display: inline-block;
+	border-radius: 0;
+	border: 0;
+	padding: 10px;
+	color: white;
+	background: rgba(0,0,0,0);	
+}
+
+.subtext {
+	font-size: .8em;
+}
+
+#medialab {
+	padding: 20px 0;
+}
+
+.left-half {
+	display: inline-block;
+	width: 40%;
+	margin-left: 5%;
+}
+
+.right-half {
+	display: inline-block;
+	width: 40%;
+	margin-left: 10%;
+}
+
 #ruleset {
 	z-index: 100;
 	position: fixed;

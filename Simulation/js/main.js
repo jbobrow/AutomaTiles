@@ -10,6 +10,14 @@ var prevStepTime = 0;
 var birthRules = [false, false, true, true, false, false, false, false, false];
 var deathRules = [true, true, false, false, true, true, true, true, true];
 
+var hideAbout = function () {
+    document.getElementById("about").style.visibility = "hidden";
+}
+
+var showAbout = function () {
+    document.getElementById("about").style.visibility = "visible";
+}
+
 // reshape the population
 var makeTri = function () {
     for (var i = 0; i < ROWS * COLS; i++) {
@@ -27,6 +35,25 @@ var makeHex = function () {
     for (var i = 0; i < ROWS * COLS; i++) {
         population[i].setShape('hexagon');
     }
+};
+
+var createHummingbird = function () {
+    var idx = Math.floor(ROWS*COLS/2 + COLS/2);
+    // right
+    population[idx].isPresent = true;
+    population[idx].state = 1;
+    // left
+    population[idx-1].isPresent = true;
+    population[idx-1].state = 1;
+    // bottom
+    population[idx+COLS].isPresent = true;
+    population[idx+COLS].state = 0;
+    // top
+    population[idx-COLS].isPresent = true;
+    population[idx-COLS].state = 0;
+
+    // play animation
+    settings.autoplay = !settings.autoplay;
 };
 
 // highlight cells
@@ -299,6 +326,9 @@ $(function () {
     // Update the renderer in order to generate corresponding DOM Elements.
     two.update();
 
+    // initialize board with artwork
+    createHummingbird();
+
     // Add touch events to the cells
     for (var i = 0; i < ROWS * COLS; i++) {
         $(population[i].shape._renderer.elem)
@@ -382,9 +412,13 @@ $(document).keydown(function (e) {
     else if (e.which === 72) {    // 'h' or 'H' is pressed
         isRulesetHidden = !isRulesetHidden;
 
-        if (isRulesetHidden)
+        if (isRulesetHidden) {
             document.getElementById("ruleset").style.display = 'none';
-        else
+            document.getElementById("export").style.display = 'none';
+        }
+        else{
             document.getElementById("ruleset").style.display = 'block';
+            document.getElementById("export").style.display = 'block';
+        }
     }
 });
