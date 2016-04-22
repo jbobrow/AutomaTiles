@@ -22,7 +22,6 @@ void setState(uint8_t state);
 uint8_t getState(void);
 void setStepCallback(cb_func cb);
 void setButtonCallback(cb_func cb);
-void setLongButtonCallback(cb_func cb);
 void setLongButtonCallback(cb_func cb, uint16_t ms);
 void setLongButtonCallbackTime(uint16_t ms);
 void setTimerCallback(cb_func cb, uint16_t t);
