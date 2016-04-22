@@ -55,6 +55,33 @@ void setButtonCallback(cb_func cb);
 // defaults to do nothing (change this to default to flash blue)
 // NOTE: you cannot delay in the button callback (i.e. timer will not update while you are in the callback) 
 ```
+**setLongButtonCallback**
+```
+void setLongButtonCallback(cb_func cb, uint16_t ms);
+// pass your own function to setLongButtonCallback, this function takes no arguments and returns nothing
+// long button callback will be activated after a button has been pressed for n milliseconds (second parameter)
+// can be set once in the beginning of your application, but can also be hot-swapped during runtime
+// defaults to do nothing (change this to default to flash blue)
+// NOTE: you cannot delay in the button callback (i.e. timer will not update while you are in the callback) 
+```
+**setLongButtonCallbackTime**
+```
+void setLongButtonCallbackTime(uint16_t ms);
+// set the amount of time it takes before the longButtonCallback is triggered
+// can be hot-swapped during runtime
+```
+**setTimerCallback**
+```
+void setTimerCallback(cb_func cb, uint16_t ms);
+// set a custom timed callback, whatever you want, it will fire after a given amount of time
+// can be hot-swapped during runtime
+```
+**setTimerCallbackTime**
+```
+void setTimerCallbackTime(uint16_t ms);
+// set the time for your callback seperately (maybe you want to update that time after setting it initially, perhaps it evolves over time
+// can be hot-swapped during runtime
+```
 **setTimeout**
 ```
 void setTimeout(uint8_t seconds);
@@ -75,16 +102,21 @@ void setMicOff(void);
 
 ###A default blank sketch looks like the following:### 
 ```
-#include “AutomaTiles.h"
-
-void button() {}
-
-void step() {}
-
-int main(void) {      
-   tileSetup(); 
+void setup() {  
    setButtonCallback(button); 
-   setStepCallback(step); 
-   while(1){}
+   setStepCallback(step);
 }
+
+void loop() {
+	// continuous time logic here
+}
+
+void button() {
+	// handle button down here
+}
+
+void step() {
+	// discrete time logic here
+}
+
 ```
