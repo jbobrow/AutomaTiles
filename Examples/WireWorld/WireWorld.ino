@@ -1,26 +1,28 @@
-/*   Wire World (Simulation/Visualization)
+/*  Wire World (Simulation/Visualization)
  *   
- *   Summary: each tile simulates traces in an wiring diagram. Electrons travel
- *            through conductive tiles with a head an a tail. Logic gates can be
- *            constructed through clever geometry. 
- *            Read more here: https://en.wikipedia.org/wiki/Wireworld
+ *  Summary: each tile simulates traces in an wiring diagram. Electrons travel
+ *           through conductive tiles with a head an a tail. Logic gates can be
+ *           constructed through clever geometry. 
+ *           Read more here: https://en.wikipedia.org/wiki/Wireworld
  *
- *   Rules: Based on Brian Silverman's Wire World
+ *  Rules: Based on Brian Silverman's Wire World
  *
- *   Electron Head: becomes electron tail
- *         Display blue 
- *   Electron Tail: becomes conductor
- *         Display red
- *   Conductor: Electron head if exactly one or two of the neighbouring cells are electron heads, or remains Conductor otherwise.
- *         Display yellow
+ *  Electron Head: becomes electron tail
+ *        Display blue 
+ *  Electron Tail: becomes conductor
+ *        Display red
+ *  Conductor: Electron head if exactly one or two of the neighbouring cells are electron heads, or remains Conductor otherwise.
+ *        Display yellow
  *
- *   IMPORTANT: To use this code in Arduino's IDE, first move the AutomaTiles folder
- *   into the right directory i.e. <user home directory>/Documents/Arduino/hardware/AutomaTiles
- *   Then open the Arduino IDE and select Tools > Board > "AutomaTile"
- *   Now you should be good to go :) (thanks to the hard work of Joshua Sloane)
- *
- *   by Jonathan Bobrow
- *   03.2016
+ *  --------------------------------------------------------------------------------------------------
+ *  IMPORTANT: To use this code in Arduino's IDE, first move the AutomaTiles folder
+ *  into the right directory i.e. <user home directory>/Documents/Arduino/hardware/AutomaTiles
+ *  Then open the Arduino IDE and select Tools > Board > "AutomaTile"
+ *  Now you should be good to go :) (thanks to the hard work of Joshua Sloane)
+ *  --------------------------------------------------------------------------------------------------
+ *   
+ *  by Jonathan Bobrow
+ *  03.2016
  */
  
 uint8_t neighbors[6];
