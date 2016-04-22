@@ -15,6 +15,13 @@
  *
  *  Game devopment by: Celia Pearce, Jeanie Choi, Isabella Carlson, Mike Lazer-Walker, Joshua Sloane
  *
+ *  --------------------------------------------------------------------------------------------------
+ *  IMPORTANT: To use this code in Arduino's IDE, first move the AutomaTiles folder
+ *  into the right directory i.e. <user home directory>/Documents/Arduino/hardware/AutomaTiles
+ *  Then open the Arduino IDE and select Tools > Board > "AutomaTile"
+ *  Now you should be good to go :) (thanks to the hard work of Joshua Sloane)
+ *  -------------------------------------------------------------------------------------------------- 
+ *     
  *  by Jonathan Bobrow
  *  01.28.2016
  */
