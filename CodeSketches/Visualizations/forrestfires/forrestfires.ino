@@ -42,7 +42,7 @@ void setup() {
   setStepCallback(step);      // setup a step handler
   setState(1);                // set initial state
   setMicOn();                 // listen to step forward
-  setTimeout(3600);           // 1 hour
+  setTimeout(600);            // 10 minutes 
 }
 
 void loop() {

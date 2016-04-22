@@ -19,8 +19,6 @@
  *  01.28.2016
  */
 
-#include "AutomaTiles.h"
-
 uint32_t lastUpdateTime = 0;
 uint32_t updateFrequency = 50;  //milliseconds
 
@@ -47,11 +45,20 @@ uint8_t outputColor[3];
 // one neighbor, feel left out)
 uint8_t minNeighbors = 2; 
 
+bool isPressed = true;
+
+void down() {
+  isPressed = true;
+}
+
 // this gets triggered when we press the button
 void button() {
-  // update the color/type we are
-  // increment our state value by one between the range of (1-6)
-  setState(getState()%6 + 1);
+  if(isPressed) {
+    // update the color/type we are
+    // increment our state value by one between the range of (1-6)
+    setState(getState()%6 + 1);
+    isPressed = false;
+  }
 }
 
 void step() {
@@ -59,11 +66,13 @@ void step() {
 }
 
 void setup() {
-  setLongButtonCallback(button);  // setup a button handler (only for long press
+  setButtonCallback(down);        // handle down
+  setLongButtonCallbackTime(2000);// handle up : only respond to presses that last more than 2 seconds
+  setLongButtonCallback(button);  // setup a button handler (only for long press)
   setStepCallback(step);          // setup a step handler
   setState(1);                    // set initial state
   setMicOff();                    // listen to step forward
-  setTimeout(3600);               // 1 hour
+  setTimeout(600);                // 10 minutes
 }
 
 void loop() {
