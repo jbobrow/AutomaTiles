@@ -15,6 +15,13 @@
  *  Reference for this kind of reaction
  *  http://ncase.me/emoji-prototype/?remote=-K71iWhftjtOIfx6b2Fo
  *  
+ *  --------------------------------------------------------------------------------------------------
+ *  IMPORTANT: To use this code in Arduino's IDE, first move the AutomaTiles folder
+ *  into the right directory i.e. <user home directory>/Documents/Arduino/hardware/AutomaTiles
+ *  Then open the Arduino IDE and select Tools > Board > "AutomaTile"
+ *  Now you should be good to go :) (thanks to the hard work of Joshua Sloane)
+ *  --------------------------------------------------------------------------------------------------
+ *   
  *  by Jonathan Bobrow + Joshua Sloane
  *  02.2016
  */
