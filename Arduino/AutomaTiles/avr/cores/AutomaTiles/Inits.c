@@ -24,7 +24,7 @@ void initAD(){//Set up all the necessary parameters for analog to digital conver
 		| (0 << MUX5) | (0 << MUX4) | (0 << MUX3) | (1 << MUX2) | (1 << MUX1) | (1 << MUX0); // (PA7 = MIC)
 	ADCSRA = (1 << ADEN) // enable
 		| (1 << ADATE) | (1 << ADIE) // auto trigger and interrupt enable
-		| (1 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); // prescaler /16
+		| (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // prescaler /8
 	ADCSRB = (0 << BIN) // single ended mode
 		| (1 << ADLAR) // left align result to easily read only 8 MSB
 		| (0 << ADTS2) | (0 << ADTS1) | (0 << ADTS0); // auto trigger off of A/D interrupt (free running mode)
@@ -35,13 +35,13 @@ void initAD(){//Set up all the necessary parameters for analog to digital conver
 void disAD(){//disable microphone when not in use
 	ADCSRA = (0 << ADEN) // disable
 	| (1 << ADATE) | (1 << ADIE) // auto trigger and interrupt enable
-	| (1 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); // prescaler /16
+	| (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // prescaler /8
 }
 
 void enAD(){//re-enable microphone
 	ADCSRA = (1 << ADEN) // ensable
 	| (1 << ADATE) | (1 << ADIE) // auto trigger and interrupt enable
-	| (1 << ADPS2) | (0 << ADPS1) | (0 << ADPS0); // prescaler /16
+	| (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); // prescaler /8
 	// start free running operation
 	ADCSRA |= (1 << ADSC);
 }
