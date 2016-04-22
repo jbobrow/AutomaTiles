@@ -27,7 +27,7 @@
  
 uint8_t neighbors[6];
 uint8_t colors[4][3] = {{0,0,0},        // NONE
-						{0,32,255},     // Electron Head
+						            {0,32,255},     // Electron Head
                         {255,0,0},      // Electron Tail
                         {180,120,8}};   // Conductor
 
