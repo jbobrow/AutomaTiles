@@ -45,20 +45,11 @@ uint8_t outputColor[3];
 // one neighbor, feel left out)
 uint8_t minNeighbors = 2; 
 
-bool isPressed = true;
-
-void down() {
-  isPressed = true;
-}
-
 // this gets triggered when we press the button
 void button() {
-  if(isPressed) {
-    // update the color/type we are
-    // increment our state value by one between the range of (1-6)
-    setState(getState()%6 + 1);
-    isPressed = false;
-  }
+  // update the color/type we are
+  // increment our state value by one between the range of (1-6)
+  setState(getState()%6 + 1);
 }
 
 void step() {
@@ -66,9 +57,7 @@ void step() {
 }
 
 void setup() {
-  setButtonCallback(down);        // handle down
-  setLongButtonCallbackTime(2000);// handle up : only respond to presses that last more than 2 seconds
-  setLongButtonCallback(button);  // setup a button handler (only for long press)
+  setLongButtonCallback(button, 2000);  // setup a button handler (only for long press)
   setStepCallback(step);          // setup a step handler
   setState(1);                    // set initial state
   setMicOff();                    // listen to step forward
