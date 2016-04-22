@@ -19,8 +19,6 @@
  *  01.28.2016
  */
 
-#include "AutomaTiles.h"
-
 uint32_t lastUpdateTime = 0;
 uint32_t updateFrequency = 50;  //milliseconds
 
@@ -59,11 +57,11 @@ void step() {
 }
 
 void setup() {
-  setLongButtonCallback(button);  // setup a button handler (only for long press
+  setLongButtonCallback(button, 2000);  // setup a button handler (only for long press)
   setStepCallback(step);          // setup a step handler
   setState(1);                    // set initial state
   setMicOff();                    // listen to step forward
-  setTimeout(3600);               // 1 hour
+  setTimeout(600);                // 10 minutes
 }
 
 void loop() {
