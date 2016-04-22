@@ -252,7 +252,6 @@ ISR(TIM0_COMPA_vect){
 			clickCB();
 			holdoff = 100;
 			click = 0;
-			isDown = 1;
 		}
 		
 		IRcount++;
@@ -294,6 +293,7 @@ ISR(TIM0_COMPA_vect){
 				if(PINB & BUTTON){//Button active high
 					if(holdoff==0){//initial press
 						buttonCB();
+						isDown = 1;	// used for long press sensing
 						sleepTimer = timer;
 						powerDownTimer = timer;
 						longPressTimer = 0;
