@@ -12,6 +12,9 @@
  *  2) Respond to E ~ 440Hz
  *  2) Respond to F ~ 440Hz
  *
+ *  FFT reference:
+ *  http://www.instructables.com/id/ATtiny85-Spectrum-Analyzer-with-fixFFT/
+ *
  *  by Jonathan Bobrow
  *  01.28.2016
  */
