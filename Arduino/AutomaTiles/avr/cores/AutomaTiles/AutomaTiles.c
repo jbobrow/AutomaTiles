@@ -32,6 +32,7 @@ volatile uint8_t wake = 0;
 
 volatile static uint16_t longPressTimer = 0;
 volatile static uint16_t longPressTime = 1000;//1 second default
+volatile static bool isDown;	// only handle long press once after time
 
 const uint8_t dark[3] = {0x00, 0x00, 0x00};
 const uint8_t wakeColor[3] = {0xAA, 0x55, 0x00};
@@ -186,7 +187,12 @@ void setLongButtonCallback(cb_func cb){
 	longButtonCB = cb;
 }
 
-void setLongButtonCallbackTimer(uint16_t ms){
+void setLongButtonCallback(cb_func cb, uint16_t ms){
+	longButtonCB = cb;
+	longPressTime = ms;
+}
+
+void setLongButtonCallbackTime(uint16_t ms){
 	longPressTime = ms;
 }
 
@@ -250,6 +256,7 @@ ISR(TIM0_COMPA_vect){
 			clickCB();
 			holdoff = 100;
 			click = 0;
+			isDown = true;
 		}
 		
 		IRcount++;
@@ -295,8 +302,9 @@ ISR(TIM0_COMPA_vect){
 						powerDownTimer = timer;
 						longPressTimer = 0;
 					}else{//during long press wait						
-						if(longPressTimer>=longPressTime){
+						if(longPressTimer>=longPressTime && isDown){
 							longButtonCB();
+							isDown = false;
 						}
 					}
 					holdoff = 200;//debounce and hold state until released

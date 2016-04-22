@@ -139,13 +139,18 @@ uint32_t getTimer(void);
 void setColor(const uint8_t color[3]);
 void setState(uint8_t state);
 uint8_t getState(void);
+
 void setStepCallback(cb_func cb);
 void setButtonCallback(cb_func cb);
+
 void setLongButtonCallback(cb_func cb);
-void setLongButtonCallbackTimer(uint16_t ms);
+void setLongButtonCallback(cb_func cb, uint16_t ms);
+void setLongButtonCallbackTime(uint16_t ms);
+
 void setTimerCallback(cb_func cb, uint16_t t);
 void setTimerCallbackTime(uint16_t t);
 void setTimeout(uint16_t seconds);
+
 void setMicOn();
 void setMicOff();
 uint8_t getSharedData(uint8_t i);
