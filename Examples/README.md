@@ -2,9 +2,9 @@
 The following examples are written using the AutomaTiles API for the Arduino IDE.
 
 ###Instructions for using the Arduino IDE w/ AutomaTiles###
-1. copy the AutomaTiles folder into your Arduino directory i.e. ~/Documents/Arduino/hardware/
+1. copy the `AutomaTiles` folder into your Arduino directory i.e. `~/Documents/Arduino/hardware/`
 2. launch or quit and relaunch Arduino IDE
-3. in the top menu, go to Tools > Board and select AutomaTile
+3. in the top menu, go to `Tools > Board` and select `AutomaTile`
 4. open an example and press the checkmark to make sure it compiles
 5. Use an ISP of your choice and program your AutomaTiles!
 
