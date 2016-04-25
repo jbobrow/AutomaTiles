@@ -42,7 +42,7 @@ hsv rgb2hsv(rgb in)
         // if max is 0, then r = g = b = 0              
             // s = 0, v is undefined
         out.s = 0.0;
-        out.h = NAN;                            // its now undefined
+        out.h = 0.0;                            // its now undefined
         return out;
     }
     if( in.r >= max )                           // > is bogus, just keeps compilor happy
