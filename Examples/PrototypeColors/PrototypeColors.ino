@@ -1,8 +1,8 @@
 /*  Prototyper
  *  
- *  1. Press on a tile to change it from steady to blink
+ *  1. Press on a tile to change it from steady to blink (3 stages, solid, slow blink, fast blink)
  *  2. Long press (1 second) on a tile to change it to the next color
- *  3. Long press (3 seconds) to gossip the color to all neighbors 
+ *  3. Double press (two times within 1 second, not fast) changes back to the previous color 
  *  
  *  --------------------------------------------------------------------------------------------------
  *  IMPORTANT: To use this code in Arduino's IDE, first move the AutomaTiles folder
