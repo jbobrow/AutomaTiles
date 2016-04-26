@@ -1,11 +1,28 @@
 ##AutomaTiles API##
 
-**tileSetup**
+Since the API is quite short, this is the current documentation for using it. It should be apparent on how to use it from some of the examples, but this can serve as a nice reference while you are writing your first programs for the AutomaTiles. 
+
+###A default blank sketch looks like the following:### 
 ```
-void tileSetup(void); 
-// Needs to be called once in main 
-// sets up inputs, outputs, timers… pretty much anything one wants to do with an AutomaTile starts here
+void setup() {  
+   setButtonCallback(button); 
+   setStepCallback(step);
+}
+
+void loop() {
+	// continuous time logic here
+}
+
+void button() {
+	// handle button down here
+}
+
+void step() {
+	// discrete time logic here
+}
+
 ```
+
 **getNeighborStates**
 ```
 void getNeighborStates(uint8_t * result);
@@ -98,25 +115,4 @@ void setMicOn(void);
 ```
 void setMicOff(void);
 // turns the microphone off (i.e. only steps forward from neighbor notification) 
-```
-
-###A default blank sketch looks like the following:### 
-```
-void setup() {  
-   setButtonCallback(button); 
-   setStepCallback(step);
-}
-
-void loop() {
-	// continuous time logic here
-}
-
-void button() {
-	// handle button down here
-}
-
-void step() {
-	// discrete time logic here
-}
-
 ```
