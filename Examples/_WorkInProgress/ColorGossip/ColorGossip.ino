@@ -35,7 +35,7 @@ void setup() {
   // Todo: handle button press and any other setup 
   setButtonCallback(button);
   setMicOff();
-  setTimeout(60);  // 1 minute
+  setTimeout(600);  // 10 minute
   setState(2);
   setColor(fromColor);
 }
@@ -45,13 +45,16 @@ void loop() {
     // Todo: animate the colors from one state to the next through a smooth transition
     getNeighborStates(neighbors);
     uint8_t counter = 0;
+    uint8_t didChangeState = 0;
     for(int i=0; i<6; i++) {
       if(neighbors[i] != 0) {
-        if(neighbors[i] != getState() ) {
-          if(getTimer() - lastStateChange > waitTimeForStateChange) {
-            setState(neighbors[i]);
-            lastStateChange = getTimer();
-            //break;
+        if(didChangeState != 1) {
+          if(neighbors[i] != getState() ) {
+            if(getTimer() - lastStateChange > waitTimeForStateChange) {
+              setState(neighbors[i]);
+              lastStateChange = getTimer();
+              didChangeState = 1;
+            }
           }
         }
       }
@@ -74,7 +77,7 @@ void loop() {
       if(prevState != 1) {
         // transition to color over the course of 1 second
         uint32_t diff = getTimer() - lastStateChange;
-        float percent = constrain(diff / 2000.0, 0.0, 1.0);
+        float percent = constrain(diff / 1000.0, 0.0, 1.0);
         interpolateRGBColor(displayColor, fromColor, toColor, percent); 
         setColor(displayColor);
         if(percent >= 1.0) {
@@ -94,7 +97,7 @@ void loop() {
       if(prevState != 2) {
         // transition to color over the course of 1 second
         uint32_t diff = getTimer() - lastStateChange;
-        float percent = constrain(diff / 2000.0, 0.0, 1.0);
+        float percent = constrain(diff / 1000.0, 0.0, 1.0);
         interpolateRGBColor(displayColor, fromColor, toColor, percent); 
         setColor(displayColor);
         if(percent >= 1.0) {
@@ -109,8 +112,8 @@ void loop() {
       // if state is 2 then animate through the spectrum
       prevState = 3;
       // animate through colors
-      uint32_t diff = getTimer() - lastStateChange;
-      float percent = (diff % 5000) / 5000.0; // through all of the colors in 5 seconds
+      uint32_t diff = getTimer() - lastStateChange + 3000;
+      float percent = (diff % 6000) / 6000.0; // through all of the colors in 6 seconds
       getRGBSpectrumFromPercent(displayColor, percent); 
       setColor(displayColor);
       fromColor[0] = displayColor[0];
