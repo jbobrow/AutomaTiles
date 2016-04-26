@@ -3,8 +3,8 @@ AutomaTiles presents a new way to interact with cellular automata. In a physical
 
 ## Components
 1. Virtual AutomaTiles
-    1. Automatiles.com/sim (written by Jonathan Bobrow, rendered w/ Two.js)
-    2. Automatiles.com/sim/emoji (modified version of Nicky Case's Emoji World Simulator)
+    1. [Automatiles.com/sim](http://automatiles.com/sim) (written by Jonathan Bobrow, rendered w/ Two.js)
+    2. [Automatiles.com/sim/emoji](http://automatiles.com/sim/emoji) (modified version of Nicky Case's Emoji World Simulator)
 2. Tangible AutomaTiles
     1. Hardware
         1. Electronics (Components)
