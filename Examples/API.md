@@ -3,7 +3,7 @@
 Since the API is quite short, this is the current documentation for using it. It should be apparent on how to use it from some of the examples, but this can serve as a nice reference while you are writing your first programs for the AutomaTiles. 
 
 **A default blank sketch**
-```
+```c
 void setup() {  
    setButtonCallback(button); 
    setStepCallback(step);
