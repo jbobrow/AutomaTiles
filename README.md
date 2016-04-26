@@ -7,16 +7,16 @@ AutomaTiles presents a new way to interact with cellular automata. In a physical
     2. [Automatiles.com/sim/emoji](http://automatiles.com/sim/emoji) (modified version of Nicky Case's Emoji World Simulator)
 2. Tangible AutomaTiles
     1. Hardware
-        1. Electronics (Components)
-        2. Printed Circuit Boards
-        3. Case Designs + Models
+        1. Electronics ([Components](https://docs.google.com/spreadsheets/d/1YpmN0rzX8dJSE3OYGx2io3yXud3R6zgf5WAVNdhyiFE))
+        2. Printed Circuit Boards ([Rev. 3](http://automatiles.tumblr.com/post/133176987321/rev-3-boards-batch-of-100-automatiles-so-much-to))
+        3. [Case Designs + Models](http://automatiles.tumblr.com/post/143452350711/automatiles-w-silicon-jackets-for-members-week)
     2. Firmware
         1. Registers, Pin mapping...
         2. Low Level code not accessible in API
     3. API
-        1. AutomaTile Library
-        2. Documentation
-        3. Example Code
+        1. [AutomaTile Library](Arduino)
+        2. [Documentation](Examples/API.md)
+        3. [Example Code](Examples)
 
 ##License
 Copyright (c) 2015 MIT
