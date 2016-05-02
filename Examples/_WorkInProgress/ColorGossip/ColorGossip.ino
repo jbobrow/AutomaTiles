@@ -108,10 +108,43 @@ void interpolateRGBColor(uint8_t *result, uint8_t from[3], uint8_t to[3], float 
   // first convert colors to HSV
   hsv fromHSV = getHSVfromRGB(from);
   hsv toHSV = getHSVfromRGB(to);
-  // Todo: Determine quickest route to color
   // tween between HSV values
   hsv resultHSV;
-  resultHSV.h = fromHSV.h * (1.0 - percent) + toHSV.h * percent;
+  // Determine quickest route to color
+  if(abs(fromHSV.h - toHSV.h) <= 0.5) {
+    // straight shot, just lerp to the color
+    resultHSV.h = fromHSV.h * (1.0 - percent) + toHSV.h * percent;
+  } 
+  else {
+    // quickest way is to go around, like a clock
+    double first, second, total;
+    if(fromHSV.h > toHSV.h) {
+      // hue path illustration: |>>second>>*-------------*>>first>>|
+      first = 360.0 - fromHSV.h; 
+      second = toHSV.h;
+      total = first + second;
+
+      if(percent < first/total) {
+        resultHSV.h = fromHSV.h + (percent * total);
+      }
+      else {
+        resultHSV.h = toHSV.h + ((percent - 1.0) * total);
+      }
+    }
+    else {
+      // hue path illustration: |<<first<<*-------------*<<second<<|
+      first = fromHSV.h;
+      second = 360.0 - toHSV.h;
+      total = first + second;
+
+      if(percent < first/total) {
+        resultHSV.h = fromHSV.h - (percent * total);
+      }
+      else {
+        resultHSV.h = toHSV.h + ((percent - 1.0) * total);        
+      }
+    }
+  }
   resultHSV.s = fromHSV.s * (1.0 - percent) + toHSV.s * percent;
   resultHSV.v = fromHSV.v * (1.0 - percent) + toHSV.v * percent;
   getRGBfromHSV(result, resultHSV);
