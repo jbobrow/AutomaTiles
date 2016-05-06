@@ -32,7 +32,12 @@ volatile uint8_t wake = 0;
 
 volatile static uint16_t longPressTimer = 0;
 volatile static uint16_t longPressTime = 1000;//1 second default
-volatile static uint8_t isDown = 0;	// only handle long press once after time
+
+volatile uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
+volatile uint8_t comBuf[65];//buffer for holding communicated messages when programming rules (oversized)
+volatile uint8_t datBuf[64];//buffer for holding verified messages to be accessed by the user
+volatile uint16_t bitsRcvd = 0;//tracking number of bits received for retransmission/avoiding overflow
+volatile uint32_t modeStart = 0;
 
 const uint8_t dark[3] = {0x00, 0x00, 0x00};
 const uint8_t wakeColor[3] = {0xAA, 0x55, 0x00};
@@ -183,12 +188,11 @@ void setButtonCallback(cb_func cb){
 	buttonCB = cb;
 }
 
-void setLongButtonCallback(cb_func cb, uint16_t ms){
+void setLongButtonCallback(cb_func cb){
 	longButtonCB = cb;
-	longPressTime = ms;
 }
 
-void setLongButtonCallbackTime(uint16_t ms){
+void setLongButtonCallbackTimer(uint16_t ms){
 	longPressTime = ms;
 }
 
@@ -230,7 +234,7 @@ uint8_t getSharedData(uint8_t i){
 		return 0;
 	}
 	
-	return comBuf[i+1];
+	return datBuf[i];
 }
 
 //Timer interrupt occurs every 1 ms
@@ -293,14 +297,12 @@ ISR(TIM0_COMPA_vect){
 				if(PINB & BUTTON){//Button active high
 					if(holdoff==0){//initial press
 						buttonCB();
-						isDown = 1;	// used for long press sensing
 						sleepTimer = timer;
 						powerDownTimer = timer;
 						longPressTimer = 0;
 					}else{//during long press wait						
-						if(longPressTimer>=longPressTime && isDown){
+						if(longPressTimer>=longPressTime){
 							longButtonCB();
-							isDown = 0;
 						}
 					}
 					holdoff = 200;//debounce and hold state until released
@@ -362,12 +364,14 @@ ISR(PCINT1_vect){
 
 //Pin Change 0 interrupt triggered when any of the phototransistors change level
 //Checks what pins are newly on and updates their buffers with the current time
+static volatile uint32_t oldTime = 0;
+
 ISR(PCINT0_vect){
 	static uint8_t prevVals = 0; //stores the previous state so that only what pins are newly on are checked
 	static uint8_t pulseCount[6]; //stores counted pulses for various actions
 	uint8_t vals = PINA & 0x3f; //mask out phototransistors
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
-	
+		
 	if(mode == running){
 		powerDownTimer = timer;
 		
@@ -384,9 +388,15 @@ ISR(PCINT0_vect){
 							sleepTimer = timer;
 						}
 					}
-					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.							
-							mode = recieving;
-							progDir = i;
+					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.	
+						click = 0;
+						sync = 0;
+						mode = recieving;
+						progDir = i;
+						int j;
+						for(j = 0; j < 65; j++){//zero out buffer
+							comBuf[j]=0;
+						}
 					}
 				}else{//Normally timed pulse, process normally
 					pulseCount[i]=0;
@@ -397,15 +407,11 @@ ISR(PCINT0_vect){
 			}
 		}	
 	}else if(mode == recieving){
-		uint32_t oldTime;
+		modeStart = timer;
 		if(((prevVals^vals)&(1<<progDir))){//programming pin has changed
 			if(timer-oldTime > (3*PULSE_WIDTH)/2){//an edge we care about
 				if(timer-oldTime > 4*PULSE_WIDTH){//first bit. use for sync
 					bitsRcvd = 0;
-					int i;
-					for(i = 0; i < 65; i++){//zero out buffer
-						comBuf[i]=0;
-					}					
 				}
 				oldTime = timer;				
 				if(bitsRcvd<65*8){

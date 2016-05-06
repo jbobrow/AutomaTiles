@@ -5,7 +5,7 @@
 uint32_t timer;
 const uint8_t black[3] = {0x00, 0x00, 0x00};
 const uint8_t transmitColor[3] = {0xff, 0x55, 0x00};
-const uint8_t recieveColor[3] = {0x55, 0xff, 0x00};
+const uint8_t recieveColor[3] = {0x00, 0xff, 0x55};
 
 static uint8_t seqNum = 0;//Sequence number used to prevent circular retransmission of data
 
@@ -50,12 +50,10 @@ int main(void) {
 			//set recieving color
 			sendColor(LEDCLK, LEDDAT, recieveColor);	
 			//record time entering the mode for timeout
-			cli();
-			uint32_t modeStart = timer;
-			sei();
+			modeStart = getTimer();
 			while(mode==recieving){//stay in this mode until instructed to leave or timeout
 				uint32_t diff = getTimer()-modeStart;
-				if(diff>3000){//been in mode 1 for more than 5 seconds
+				if(diff>20*PULSE_WIDTH){//Been too long without any new data
 					mode = transmitting;					
 				}
 			}
@@ -79,13 +77,17 @@ int main(void) {
 					}
 					startTime = getTimer();
 				}
+				
+				for(i=1;i<bitsRcvd/8;i++){
+					datBuf[i-1]=comBuf[i];
+				}
 			}else{
 				bitsRcvd = 0;
 			}
 			
 			startTime = getTimer();
 			sendColor(LEDCLK, LEDDAT, transmitColor);//update color while waiting			
-			while(getTimer()<startTime+20);//pause for mode change
+			while(getTimer()<startTime+5*PULSE_WIDTH);//pause for mode change
 			startTime = getTimer();
 			uint16_t timeDiff;
 			uint16_t bitNum;
@@ -101,7 +103,7 @@ int main(void) {
 				}else{//second half
 					if(comBuf[bitNum/8]&(1<<bitNum%8)){//bit high
 						PORTB |=  IR;
-						}else{//bit low
+					}else{//bit low
 						PORTB &=  ~IR;
 					}
 				}
@@ -109,7 +111,7 @@ int main(void) {
 					bitsRcvd = 0;
 				}				
 			}
-			//while(timer<startTime+2000);//pause for effect
+			while(getTimer()<startTime+2000);//pause for effect
 			
 			//done transmitting
 			//re-enable A/D
@@ -117,6 +119,7 @@ int main(void) {
 			//re-enable all phototransistors
 			setDirAll();
 			setState(0);
+			
 			mode = running;
 
 		}
