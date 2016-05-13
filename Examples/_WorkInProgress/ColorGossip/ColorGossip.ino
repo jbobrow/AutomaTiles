@@ -25,6 +25,8 @@ uint8_t colors[7][3] = {{204,0,0},        // Red
                         {204,64,0},       // Orange
                         {0,204,0}};       // Green
 
+uint8_t loadingColor[3] = {128,128,128};
+uint8_t completeColor[3] = {255,255,255};
 uint8_t darkColor[3] = {0,0,0};
 uint8_t displayColor[3];
 
@@ -35,31 +37,33 @@ uint32_t updateFrequency = 50;  //milliseconds
 
 uint32_t waitTimeForStateChange = 5000;
 uint32_t timeSinceLastStateChange = 0;
+uint8_t curState = 1;
 uint8_t prevState = 1;
 
 void setup() {
-  setLongButtonCallback(button, 1000);
-  setState(1);
-  setColor(colors[0]);
+  setButtonCallback(button);
+  setState(curState);
+  setColor(colors[curState-1]);
   setMicOff();
   setTimeout(600);  // 10 minute
 }
 
 void loop() {
-  if(getTimer() - lastUpdateTime > updateFrequency) {
+  uint32_t curTime = getTimer();
+  if(curTime - lastUpdateTime > updateFrequency) {
     // Todo: animate the colors from one state to the next through a smooth transition
     getNeighborStates(neighbors);
-    uint8_t counter = 0;
     uint8_t didChangeState = 0;
     uint8_t isAlone = 1;
     for(int i=0; i<6; i++) {
       if(neighbors[i] != 0) {
         isAlone = 0;
-        if(getTimer() - timeSinceLastStateChange > waitTimeForStateChange) {
-          if(didChangeState != 1) { // no need to keep checking if we will change state
-            if(neighbors[i] != getState() ) {
-              setState(neighbors[i]);
-              timeSinceLastStateChange = getTimer();
+        if(curTime - timeSinceLastStateChange > waitTimeForStateChange) {
+          if(!didChangeState) { // no need to keep checking if we will change state
+            if(neighbors[i] != curState ) {
+              curState = neighbors[i];
+              setState(curState);
+              timeSinceLastStateChange = curTime;
               didChangeState = 1;
             }
           }
@@ -67,9 +71,9 @@ void loop() {
       }
     }
     
-    if(isAlone) {
+    if(isAlone) {// isAlone) {
       // blink orange
-      if((getTimer()/1000) % 2 == 0) {
+      if((curTime/1000) % 2 == 0) {
         setColor(colors[5]);
       }
       else {
@@ -78,29 +82,31 @@ void loop() {
     }
     else {
       // if need to change, change, otherwise, display color of state
-      if(prevState != getState()) {
-        // transition to color over the course of 1 second
-        uint32_t diff = getTimer() - timeSinceLastStateChange;
-        float percent = constrain(diff / 1000.0, 0.0, 1.0);
-        interpolateRGBColor(displayColor, colors[prevState], colors[getState()], percent); 
-        setColor(displayColor);
+      if( prevState != curState) {
+        // transition to color over the course of 2 seconds
+        uint32_t diff = curTime - timeSinceLastStateChange;
+        float percent = diff/2000.0;
+        interpolateRGBColor(displayColor, colors[prevState-1], colors[curState-1], percent); 
+        setColor(loadingColor);
         if(percent >= 1.0) {
-          prevState = getState();
+          prevState = curState;
+          setColor(completeColor);
         }
       }
       else {
-        setColor(colors[getState()]);
+        setColor(colors[curState - 1]);
       }
     }
     
     // update our update time
-    lastUpdateTime = getTimer();
+    lastUpdateTime = curTime;
   }
 }
 
 // change state and color
 void button() {
-  setState((getState()+1) % 7);
+  curState = (curState % 7) + 1;
+  setState(curState);
   timeSinceLastStateChange = getTimer();
 }
 
@@ -110,60 +116,18 @@ void interpolateRGBColor(uint8_t *result, uint8_t from[3], uint8_t to[3], float 
   hsv toHSV = getHSVfromRGB(to);
   // tween between HSV values
   hsv resultHSV;
-  // Determine quickest route to color
-  if(abs(fromHSV.h - toHSV.h) <= 0.5) {
-    // straight shot, just lerp to the color
-    resultHSV.h = fromHSV.h * (1.0 - percent) + toHSV.h * percent;
-  } 
-  else {
-    // quickest way is to go around, like a clock
-    double first, second, total;
-    if(fromHSV.h > toHSV.h) {
-      // hue path illustration: |>>second>>*-------------*>>first>>|
-      first = 360.0 - fromHSV.h; 
-      second = toHSV.h;
-      total = first + second;
-
-      if(percent < first/total) {
-        resultHSV.h = fromHSV.h + (percent * total);
-      }
-      else {
-        resultHSV.h = toHSV.h + ((percent - 1.0) * total);
-      }
-    }
-    else {
-      // hue path illustration: |<<first<<*-------------*<<second<<|
-      first = fromHSV.h;
-      second = 360.0 - toHSV.h;
-      total = first + second;
-
-      if(percent < first/total) {
-        resultHSV.h = fromHSV.h - (percent * total);
-      }
-      else {
-        resultHSV.h = toHSV.h + ((percent - 1.0) * total);        
-      }
-    }
-  }
+  resultHSV.h = fromHSV.h * (1.0 - percent) + toHSV.h * percent;
   resultHSV.s = fromHSV.s * (1.0 - percent) + toHSV.s * percent;
   resultHSV.v = fromHSV.v * (1.0 - percent) + toHSV.v * percent;
   getRGBfromHSV(result, resultHSV);
 }
 
-void getRGBSpectrumFromPercent(uint8_t *rgbColor, float percent) {
-  hsv hsvColor;
-  hsvColor.h = percent * 360;
-  hsvColor.s = 1.0;
-  hsvColor.v = 1.0;
-  getRGBfromHSV(rgbColor, hsvColor);
-}
-
 void getRGBfromHSV(uint8_t *result, hsv hsvColor) {
   rgb convertedColor;
   convertedColor = hsv2rgb(hsvColor);
-  result[0] = int(convertedColor.r * 255);
-  result[1] = int(convertedColor.g * 255);
-  result[2] = int(convertedColor.b * 255);
+  result[0] = int(convertedColor.r * 255.0);
+  result[1] = int(convertedColor.g * 255.0);
+  result[2] = int(convertedColor.b * 255.0);
 }
 
 hsv getHSVfromRGB(uint8_t rgbColor[3]) {
