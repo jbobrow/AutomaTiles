@@ -34,8 +34,9 @@ volatile static uint16_t longPressTimer = 0;
 volatile static uint16_t longPressTime = 1000;//1 second default
 
 volatile uint8_t progDir = 0;//direction to pay attention to during programming. Set to whichever side put the module into program mode.
-volatile uint8_t comBuf[65];//buffer for holding communicated messages when programming rules (oversized)
-volatile uint8_t datBuf[64];//buffer for holding verified messages to be accessed by the user
+volatile uint8_t* comBuf;//buffer for holding communicated messages when programming rules (oversized)
+volatile uint8_t* datBuf;//buffer for holding verified messages to be accessed by the user
+uint8_t datLen = 0;
 volatile uint16_t bitsRcvd = 0;//tracking number of bits received for retransmission/avoiding overflow
 volatile uint32_t modeStart = 0;
 
@@ -60,23 +61,10 @@ enum MODE mode = running;
  * difference is found, that translates directly to a state
  * Accuracy is traded for number of states (i.e. 5 states can be communicated reliably, while 10 with less robustness)
 */
+uint8_t oldData[] = {0,0,0,0,0,0};
+
 void getNeighborStates(uint8_t * result){
 	uint8_t interrupts = SREG&1<<7;
-	
-	/*if(interrupts)cli();
-	uint32_t t = timer;
-	if(interrupts)sei();
-	uint32_t st = t;
-	uint8_t done = 0;
-	
-	while(!done){
-		cli();
-		t = timer;
-		sei();
-		if(t-st>100){
-			done = 1;
-		}
-	}	*/
 	
 	if(interrupts)cli();//Disable interrupts to safely grab consistent timer value
 	uint32_t curTime = timer;
@@ -92,18 +80,18 @@ void getNeighborStates(uint8_t * result){
 			diffs[2] = times[i][(buf-2)&0x03] - times[i][(buf-3)&0x03];
 			if(diffs[0]>100 || diffs[1]>100 || diffs[2] > 100){//Not enough pulses recently
 				result[i] = 0;
+				oldData[i] = 0;
 			}else{//received enough pulses recently
 				//rounding 
 				diffs[0] >>= 3;
 				diffs[1] >>= 3;
 				diffs[2] >>= 3;
 				//checking if any two of the differences are equal and using a value from the equal pair
-				if(diffs[0] == diffs[1] || diffs[0] == diffs[2]){
+				if(diffs[0] == diffs[1] &&diffs[0] == diffs[2]){
 					result[i] = (uint8_t) diffs[0];
-				}else if(diffs[1] == diffs[2]){
-					result[i] = (uint8_t) diffs[1];
-				}else{//too much variation
-					result[i] = 0;
+					oldData[i]=result[i];
+				}else{//too much variation reuse old value
+					result[i] = oldData[i];
 				}
 			}
 		}
@@ -229,8 +217,14 @@ void sendStep(){
 	clickCB();
 }
 
+void setSharedDataBuffer(uint8_t* comb,uint8_t* datb , uint8_t len){
+	comBuf = comb;
+	datBuf = datb;
+	datLen = len;
+}
+
 uint8_t getSharedData(uint8_t i){
-	if(i>=64){
+	if(i>=datLen){
 		return 0;
 	}
 	
@@ -365,6 +359,7 @@ ISR(PCINT1_vect){
 //Pin Change 0 interrupt triggered when any of the phototransistors change level
 //Checks what pins are newly on and updates their buffers with the current time
 static volatile uint32_t oldTime = 0;
+volatile uint8_t msgNum = 0;
 
 ISR(PCINT0_vect){
 	static uint8_t prevVals = 0; //stores the previous state so that only what pins are newly on are checked
@@ -394,9 +389,10 @@ ISR(PCINT0_vect){
 						mode = recieving;
 						progDir = i;
 						int j;
-						for(j = 0; j < 65; j++){//zero out buffer
+						for(j = 0; j < datLen; j++){//zero out buffer
 							comBuf[j]=0;
 						}
+						msgNum = 0;
 					}
 				}else{//Normally timed pulse, process normally
 					pulseCount[i]=0;
@@ -413,10 +409,14 @@ ISR(PCINT0_vect){
 				if(timer-oldTime > 4*PULSE_WIDTH){//first bit. use for sync
 					bitsRcvd = 0;
 				}
-				oldTime = timer;				
-				if(bitsRcvd<65*8){
+				oldTime = timer;
+				if(bitsRcvd<8){
 					uint8_t bit = ((vals&(1<<progDir))>>progDir);
-					comBuf[bitsRcvd/8] |= bit<<(bitsRcvd%8);
+					msgNum |= bit<<(bitsRcvd%8);
+					bitsRcvd++;
+				}else	if(bitsRcvd<datLen*8+8){
+					uint8_t bit = ((vals&(1<<progDir))>>progDir);
+					comBuf[bitsRcvd/8-1] |= bit<<(bitsRcvd%8);
 					bitsRcvd++;
 				}				
 			}

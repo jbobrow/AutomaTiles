@@ -87,7 +87,7 @@ void loop() {
         uint32_t diff = curTime - timeSinceLastStateChange;
         float percent = diff/2000.0;
         interpolateRGBColor(displayColor, colors[prevState-1], colors[curState-1], percent); 
-        setColor(loadingColor);
+        setColor(displayColor);
         if(percent >= 1.0) {
           prevState = curState;
           setColor(completeColor);

@@ -34,8 +34,10 @@ extern uint8_t outColor[3];
 extern volatile uint8_t wake;
 
 extern volatile uint8_t progDir;
-extern volatile uint8_t comBuf[65];
-extern volatile uint8_t datBuf[64];
+extern volatile uint8_t* comBuf;//buffer for holding communicated messages when programming rules (oversized)
+extern volatile uint8_t* datBuf;//buffer for holding verified messages to be accessed by the user
+extern uint8_t datLen;
+extern volatile uint8_t msgNum;
 extern volatile uint16_t bitsRcvd;
 extern volatile uint32_t modeStart;
 

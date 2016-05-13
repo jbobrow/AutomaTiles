@@ -148,6 +148,7 @@ void setTimerCallbackTime(uint16_t t);
 void setTimeout(uint16_t seconds);
 void setMicOn();
 void setMicOff();
+void setSharedDataBuffer(volatile uint8_t* comb,volatile uint8_t* datb , uint8_t len);
 uint8_t getSharedData(uint8_t i);
 
 enum MODE

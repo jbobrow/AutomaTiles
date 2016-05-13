@@ -64,8 +64,8 @@ int main(void) {
 			DDRB |= IR;//Set direction out
 			//send 5 pulses
 			uint32_t startTime = getTimer();
-			if(bitsRcvd>=8 && comBuf[0]!=seqNum){
-				seqNum = comBuf[0];
+			if(bitsRcvd>=8 && msgNum!=seqNum){
+				seqNum = msgNum;
 				int i;
 				for(i=0; i<5; i++){
 					while(getTimer()==startTime){
@@ -78,8 +78,8 @@ int main(void) {
 					startTime = getTimer();
 				}
 				
-				for(i=1;i<bitsRcvd/8;i++){
-					datBuf[i-1]=comBuf[i];
+				for(i=0;i<bitsRcvd/8-1;i++){
+					datBuf[i]=comBuf[i];
 				}
 			}else{
 				bitsRcvd = 0;
