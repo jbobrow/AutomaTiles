@@ -16,9 +16,18 @@
  */
 #include "color.h"
 
-// default colors to yellow
-uint8_t fromColor[3] = {255,255,0};
-uint8_t toColor[3] = {255,255,0};
+// colors arranged to travel the farthest in transition between colors
+uint8_t colors[7][3] = {{204,0,0},        // Red
+                        {0,204,204},      // Cyan
+                        {204,0,204},      // Magenta
+                        {204,204,0},      // Yellow
+                        {0,0,255},        // Blue
+                        {204,64,0},       // Orange
+                        {0,204,0}};       // Green
+
+uint8_t loadingColor[3] = {128,128,128};
+uint8_t completeColor[3] = {255,255,255};
+uint8_t darkColor[3] = {0,0,0};
 uint8_t displayColor[3];
 
 uint8_t neighbors[6];
@@ -27,119 +36,78 @@ uint32_t lastUpdateTime = 0;
 uint32_t updateFrequency = 50;  //milliseconds
 
 uint32_t waitTimeForStateChange = 5000;
-uint32_t lastStateChange = 0;
-uint8_t prevState = 0;
-uint8_t isAlone = 1;
+uint32_t timeSinceLastStateChange = 0;
+uint8_t curState = 1;
+uint8_t prevState = 1;
 
 void setup() {
-  // Todo: handle button press and any other setup 
   setButtonCallback(button);
+  setState(curState);
+  setColor(colors[curState-1]);
   setMicOff();
   setTimeout(600);  // 10 minute
-  setState(2);
-  setColor(fromColor);
 }
 
 void loop() {
-  if(getTimer() - lastUpdateTime > updateFrequency) {
+  uint32_t curTime = getTimer();
+  if(curTime - lastUpdateTime > updateFrequency) {
     // Todo: animate the colors from one state to the next through a smooth transition
     getNeighborStates(neighbors);
-    uint8_t counter = 0;
     uint8_t didChangeState = 0;
+    uint8_t isAlone = 1;
     for(int i=0; i<6; i++) {
       if(neighbors[i] != 0) {
-        if(didChangeState != 1) {
-          if(neighbors[i] != getState() ) {
-            if(getTimer() - lastStateChange > waitTimeForStateChange) {
-              setState(neighbors[i]);
-              lastStateChange = getTimer();
+        isAlone = 0;
+        if(curTime - timeSinceLastStateChange > waitTimeForStateChange) {
+          if(!didChangeState) { // no need to keep checking if we will change state
+            if(neighbors[i] != curState ) {
+              curState = neighbors[i];
+              setState(curState);
+              timeSinceLastStateChange = curTime;
               didChangeState = 1;
             }
           }
         }
       }
-      else {
-        counter++;
-      }
-    }
-    if(counter == 6) {
-      isAlone = 1;
-    }
-    else {
-      isAlone = 0;
     }
     
-    if(isAlone) {
-      // send color red
-      toColor[0] = 255;
-      toColor[1] = 0;
-      toColor[2] = 0;
-      if(prevState != 1) {
-        // transition to color over the course of 1 second
-        uint32_t diff = getTimer() - lastStateChange;
-        float percent = constrain(diff / 1000.0, 0.0, 1.0);
-        interpolateRGBColor(displayColor, fromColor, toColor, percent); 
-        setColor(displayColor);
-        if(percent >= 1.0) {
-          prevState = 1;
-          fromColor[0] = 255;
-          fromColor[1] = 0;
-          fromColor[2] = 0;                
-        }
+    if(isAlone) {// isAlone) {
+      // blink orange
+      if((curTime/1000) % 2 == 0) {
+        setColor(colors[5]);
+      }
+      else {
+        setColor(darkColor);
       }
     }
-    else if(getState() == 2) {
-    // if state is 1 then transition to be a solid color
-      // send color to cyan
-      toColor[0] = 0;
-      toColor[1] = 255;
-      toColor[2] = 255;
-      if(prevState != 2) {
-        // transition to color over the course of 1 second
-        uint32_t diff = getTimer() - lastStateChange;
-        float percent = constrain(diff / 1000.0, 0.0, 1.0);
-        interpolateRGBColor(displayColor, fromColor, toColor, percent); 
-        setColor(displayColor);
+    else {
+      // if need to change, change, otherwise, display color of state
+      if( prevState != curState) {
+        // transition to color over the course of 2 seconds
+        uint32_t diff = curTime - timeSinceLastStateChange;
+        float percent = diff/2000.0;
+        interpolateRGBColor(displayColor, colors[prevState-1], colors[curState-1], percent); 
+        setColor(loadingColor);
         if(percent >= 1.0) {
-          prevState = 2;
-          fromColor[0] = 0;
-          fromColor[1] = 255;
-          fromColor[2] = 255;        
+          prevState = curState;
+          setColor(completeColor);
         }
       }
+      else {
+        setColor(colors[curState - 1]);
+      }
     }
-    else if(getState() == 3) {
-      // if state is 2 then animate through the spectrum
-      prevState = 3;
-      // animate through colors
-      uint32_t diff = getTimer() - lastStateChange + 3000;
-      float percent = (diff % 6000) / 6000.0; // through all of the colors in 6 seconds
-      getRGBSpectrumFromPercent(displayColor, percent); 
-      setColor(displayColor);
-      fromColor[0] = displayColor[0];
-      fromColor[1] = displayColor[1];
-      fromColor[2] = displayColor[2];
-    }
+    
     // update our update time
-    lastUpdateTime = getTimer();
+    lastUpdateTime = curTime;
   }
 }
 
-// change state from 1 to 2 or from 2 to 1
+// change state and color
 void button() {
-  if(getState() == 2)
-    setState(3);
-  else
-    setState(2);
-  lastStateChange = getTimer();
-}
-
-void getRGBSpectrumFromPercent(uint8_t *rgbColor, float percent) {
-  hsv hsvColor;
-  hsvColor.h = percent * 360;
-  hsvColor.s = 1.0;
-  hsvColor.v = 1.0;
-  getRGBfromHSV(rgbColor, hsvColor);
+  curState = (curState % 7) + 1;
+  setState(curState);
+  timeSinceLastStateChange = getTimer();
 }
 
 void interpolateRGBColor(uint8_t *result, uint8_t from[3], uint8_t to[3], float percent) {
@@ -157,9 +125,9 @@ void interpolateRGBColor(uint8_t *result, uint8_t from[3], uint8_t to[3], float 
 void getRGBfromHSV(uint8_t *result, hsv hsvColor) {
   rgb convertedColor;
   convertedColor = hsv2rgb(hsvColor);
-  result[0] = int(convertedColor.r * 255);
-  result[1] = int(convertedColor.g * 255);
-  result[2] = int(convertedColor.b * 255);
+  result[0] = int(convertedColor.r * 255.0);
+  result[1] = int(convertedColor.g * 255.0);
+  result[2] = int(convertedColor.b * 255.0);
 }
 
 hsv getHSVfromRGB(uint8_t rgbColor[3]) {
