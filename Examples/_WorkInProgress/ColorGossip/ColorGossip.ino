@@ -25,8 +25,6 @@ uint8_t colors[7][3] = {{204,0,0},        // Red
                         {204,64,0},       // Orange
                         {0,204,0}};       // Green
 
-uint8_t loadingColor[3] = {128,128,128};
-uint8_t completeColor[3] = {255,255,255};
 uint8_t darkColor[3] = {0,0,0};
 uint8_t displayColor[3];
 
@@ -39,6 +37,8 @@ uint32_t waitTimeForStateChange = 5000;
 uint32_t timeSinceLastStateChange = 0;
 uint8_t curState = 1;
 uint8_t prevState = 1;
+
+uint8_t aloneCount = 0;
 
 void setup() {
   setButtonCallback(button);
@@ -55,9 +55,11 @@ void loop() {
     getNeighborStates(neighbors);
     uint8_t didChangeState = 0;
     uint8_t isAlone = 1;
+    aloneCount++;
     for(int i=0; i<6; i++) {
       if(neighbors[i] != 0) {
         isAlone = 0;
+        aloneCount = 0;
         if(curTime - timeSinceLastStateChange > waitTimeForStateChange) {
           if(!didChangeState) { // no need to keep checking if we will change state
             if(neighbors[i] != curState ) {
@@ -71,7 +73,7 @@ void loop() {
       }
     }
     
-    if(isAlone) {// isAlone) {
+    if(aloneCount > 10) {// isAlone) {
       // blink orange
       if((curTime/1000) % 2 == 0) {
         setColor(colors[5]);
@@ -90,7 +92,7 @@ void loop() {
         setColor(displayColor);
         if(percent >= 1.0) {
           prevState = curState;
-          setColor(completeColor);
+          setColor(colors[curState-1]);
         }
       }
       else {
