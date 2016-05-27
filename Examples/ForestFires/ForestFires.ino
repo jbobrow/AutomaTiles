@@ -28,17 +28,22 @@ uint8_t colors[4][3] = {{8,4,0},         // Dead Tree
                         {26,255,0},      // Alive Tree
                         {255,128,8},     // Fire
                         {204,204,255}};  // Lightning
+
+uint8_t brightColors[3][3] = {{16,8,0},  // Dead Tree
+                        {128,255,32},      // Alive Tree
+                        {255,192,32}};   // Fire
+
 uint8_t darkColor[3] = {0,0,0};
 
 uint8_t bLightning = 0;
 uint16_t lightningDelay = 1500;
 uint32_t lightningStrikeTime = 0;
 uint32_t currentTime = 0;
+uint32_t snapTime = 0;
 
 
 void setup() {
   setButtonCallback(button);  // setup a button handler
-  //setButtonCallback(button);  // setup a long press handler
   setStepCallback(step);      // setup a step handler
   setState(1);                // set initial state
   setMicOn();                 // listen to step forward
@@ -51,7 +56,7 @@ void loop() {
   // h
   if(bLightning) {
     if(currentTime - lightningStrikeTime >= lightningDelay) {
-      if(getState() != 0) {
+      if(getState() == 1) {
            setState(2);  // make fire
       }
       setColor(colors[getState()]);
@@ -64,6 +69,12 @@ void loop() {
       setColor(colors[3]);
     }
   }
+  else if(currentTime - snapTime < 100) {
+    setColor(brightColors[getState()]);  // flash brighter
+  }
+  else {
+    setColor(colors[getState()]);
+  }
 }
 
 void button() {
@@ -73,6 +84,8 @@ void button() {
 }
 
 void step() {
+  snapTime = getTimer();
+  
   // check neighbors
   getNeighborStates(neighbors);
   
@@ -99,10 +112,9 @@ void step() {
          }
          break;
     case 2: 
-         if(currentTime % 2 ==0)
-              setState(0);   // burn out with 50% probability
+//         if(currentTime % 2 ==0)
+         setState(0);   // burn out with 100% probability
          break;
     default: break;
   }
-  setColor(colors[getState()]);
 }
