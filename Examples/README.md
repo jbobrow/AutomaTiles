@@ -9,6 +9,9 @@ The following examples are written using the AutomaTiles API for the Arduino IDE
 5. Use an ISP of your choice and program your AutomaTiles!
 
 ###Examples###
+**Color Gossip**
+An example to show how colors can transition smoothly between each other. In this aesthetic example, tiles pulse white when alone, and then share colors when together. Pressing on one changes its color, and surrounding tiles try to match the color while transitioning smoothly over 3 seconds. With a large population, the result is a flow of colors, it is up to chance which one will contaminate them all.  
+
 **Game of Life**
 Based on John Conway's [Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), this example follows a simple set of rules to emerge some very complex behavior. Different AutomaTile arrangements create multiple static and dynamic equilibria
 
