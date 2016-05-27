@@ -26,6 +26,16 @@ uint8_t colors[7][3] = {{204,0,0},        // Red
                         {0,204,0}};       // Green
 
 uint8_t darkColor[3] = {0,0,0};
+uint8_t brightness[60] = {
+  64,71,77,84,90,96,102,107,
+  112,116,119,122,125,127,128,128,
+  128,127,125,122,119,116,112,107,
+  102,96,90,84,77,71,64,57,
+  51,44,38,32,26,21,16,12,
+  9,6,3,1,0,0,0,1,
+  3,6,9,12,16,21,26,32,
+  38,44,51,57};
+
 uint8_t displayColor[3];
 
 uint8_t neighbors[6];
@@ -45,7 +55,7 @@ void setup() {
   setState(curState);
   setColor(colors[curState-1]);
   setMicOff();
-  setTimeout(600);  // 10 minute
+  setTimeout(300);  // 5 minute
 }
 
 void loop() {
@@ -54,11 +64,10 @@ void loop() {
     // Todo: animate the colors from one state to the next through a smooth transition
     getNeighborStates(neighbors);
     uint8_t didChangeState = 0;
-    uint8_t isAlone = 1;
-    aloneCount++;
+    if(aloneCount < 254)
+      aloneCount++;
     for(int i=0; i<6; i++) {
       if(neighbors[i] != 0) {
-        isAlone = 0;
         aloneCount = 0;
         if(curTime - timeSinceLastStateChange > waitTimeForStateChange) {
           if(!didChangeState) { // no need to keep checking if we will change state
@@ -74,13 +83,12 @@ void loop() {
     }
     
     if(aloneCount > 10) {// isAlone) {
-      // blink orange
-      if((curTime/1000) % 2 == 0) {
-        setColor(colors[5]);
-      }
-      else {
-        setColor(darkColor);
-      }
+      //pulse white
+      int8_t idx = (curTime%3000)/50;
+      displayColor[0] = 32 + brightness[idx]; 
+      displayColor[1] = 32 + brightness[idx]; 
+      displayColor[2] = 32 + brightness[idx];
+      setColor(displayColor); 
     }
     else {
       // if need to change, change, otherwise, display color of state
@@ -118,6 +126,42 @@ void interpolateRGBColor(uint8_t *result, uint8_t from[3], uint8_t to[3], float 
   hsv toHSV = getHSVfromRGB(to);
   // tween between HSV values
   hsv resultHSV;
+  //Determine quickest route to color
+  if(abs(fromHSV.h - toHSV.h) <= 180.0) {
+    // straight shot, just lerp to the color
+    resultHSV.h = fromHSV.h * (1.0 - percent) + toHSV.h * percent;
+  }
+  else {
+    // quickest way is to go around, like a clock
+    double first, second, total;
+    if(fromHSV.h > toHSV.h) {
+      // hue path illustration: |>>second>>*-------------*>>first>>|
+      first = 360.0 - fromHSV.h;
+      second = toHSV.h;
+      total = first + second;
+
+      if(percent < first/total) {
+        resultHSV.h = fromHSV.h + (percent * total);
+      }
+      else {
+        resultHSV.h = toHSV.h + ((percent - 1.0) * total);
+      }
+    }
+    else {
+      // hue path illustration: |<<first<<*-------------*<<second<<|
+      first = fromHSV.h;
+      second = 360.0 - toHSV.h;
+      total = first + second;
+
+      if(percent < first/total) {
+        resultHSV.h = fromHSV.h - (percent * total);
+      }
+      else {
+        resultHSV.h = toHSV.h + ((percent - 1.0) * total);
+      }
+    }
+  }
+  
   resultHSV.h = fromHSV.h * (1.0 - percent) + toHSV.h * percent;
   resultHSV.s = fromHSV.s * (1.0 - percent) + toHSV.s * percent;
   resultHSV.v = fromHSV.v * (1.0 - percent) + toHSV.v * percent;
