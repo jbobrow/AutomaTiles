@@ -21,6 +21,8 @@ void setColor(const uint8_t color[3]);
 void setState(uint8_t state);
 uint8_t getState(void);
 void setStepCallback(cb_func cb);
+void setLongButtonCallback(cb_func cb, uint16_t);
+void setLongButtonCallbackTimer(uint16_t);
 void setButtonCallback(cb_func cb);
 void setTimerCallback(cb_func cb, uint16_t t);
 void setTimerCallbackTime(uint16_t t);

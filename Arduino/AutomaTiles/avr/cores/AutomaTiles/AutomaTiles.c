@@ -176,8 +176,9 @@ void setButtonCallback(cb_func cb){
 	buttonCB = cb;
 }
 
-void setLongButtonCallback(cb_func cb){
+void setLongButtonCallback(cb_func cb, uint16_t ms){
 	longButtonCB = cb;
+	longPressTime = ms;
 }
 
 void setLongButtonCallbackTimer(uint16_t ms){
