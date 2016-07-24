@@ -38,9 +38,19 @@ In the forest fire example, time is discrete, which makes the spread of the fire
 
 In the game Fracture, a continuous game, the tiles are constantly evaluating their state so they can show players the most up to date representation of the current board state. This results in a board that is quickly responsive to arrangement, while discrete time makes a board that feels responsive to sound, pacemaker, or simply discrete time.
 
+##Random vs. Deterministic
+
+AutomaTiles can respond to their inputs and neighbors deterministically, where they will respond exactly the same way given the same inputs and neighbors everytime. This is the case in the example of Fracture or Game of Life. Players can learn how tiles will behave given a certain arrangement because of this deterministic ruleset.
+
+Games often use randomness for a bit of chance involved in each move. A dice roll, or a weighted random value can be very useful in creating suspense or capturing the real world uncertainty.
+
+Randomness can also be used with AutomaTiles with a bit of care and caution. Randomness is currently based on the internal clock of the ATtiny, which can provide a good enough source for a dice roll. In the example of the forest fire, each tile (plot of land) has an n% chance of growing a tree. That percent increases with the number of neighboring trees, to represent fertile ground, but it is random none-the-less. The caviat with randomness and AutomaTiles is that players must feel like the tiles are giving signal, not simply noise. If a player can't understand why a tile is behaving in the way it is, it will be confusing for everyone. That said, it is not a technical limitation, if you want a tile to be a random different color every time you press it, that is an easy program to write.
+
+
 ##Memory
 
 While tiles can maintain a bit of a memory or history of what they have done, neighbors they've had, or how much time has passed, this is limited and it is important to remember that if this isn't transparent to the player, it will be very confusing. However, there will be elegant solutions in which a bit of stygmergy might just seep its way into a game and shed light on a beautiful invisible system that lies just beneath the surface.
+(more on program space below)
 
 ##Trickiness
 
