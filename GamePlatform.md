@@ -63,6 +63,8 @@ The forest fire example uses ~5k memory (i.e. that application is only about 1k)
 
 The game Fracture uses ~6k memory (... 2k application)
 
+Additionally, there are 512 bytes of dynamic memory or RAM, which will be used for your global variables as well as your stack. If you use up all of that space with global variables, there will be no room for the stack and so weird sh...stuff will happen. Here is a nice breakdown of [memory management on AVR](http://thegaragelab.com/conserving-memory-on-an-avr/).
+
 The space is limited, which suggests simple rules and straightforward code, which is beneficial to the players as well, since the aggregate always feels more complex than the single tile. When programming the tiles, optimizations for space can be made such as being specific about the types of variables. For example, using a `uint8_t` (1 byte... 8 bits) is a space efficient way to hold numbers 0-255, while using an `int` or an `uint16_t`(2 bytes... 16 bits) might be wasteful.
 
 At first this task of memory management could seem daunting, but in practice, I have found the exercise of being concise and clever with code quite rewarding. Additionally, the Arduino IDE will let you know exactly how much space you are using everytime you press compile. If you open up a blank AutomaTile sketch and press compile, you will see that the sketch is ~4k (49%)
