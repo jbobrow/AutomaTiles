@@ -50,3 +50,20 @@ As you might have noticed, you have complete control over the way a tile display
 The possibilities are many, feel free to look through the samples, they are only a few, but cover a couple of use cases.
 
 Please feel free to ask about features, and if I didn't cover something that is in the API, I should, so point it out, it belongs here, too!
+
+##Tech Details (for the game designer)
+
+Each tile has it's own brain(attiny) with which it can run its own set of instructions. The examples I have given so far have the exact same code on every tile and the properties of the tiles together could be referred to as _emergent_. Game design with different code on some tiles vs others is also possible but might requires a skin or mark of some sort to differentiate the tiles (if the colors don't already suggest seperation).
+
+###Memory
+
+The ATtiny84 contains 8k of memory. The AutomaTiles firmware (or core library) takes up just under half of this space (~4k). That leaves an additional 4k for you to program your application.
+
+The forest fire example uses ~5k memory (i.e. that application is only about 1k)
+
+The game Fracture uses ~6k memory (... 2k application)
+
+The space is limited, which suggests simple rules and straightforward code, which is beneficial to the players as well, since the aggregate always feels more complex than the single tile. When programming the tiles, optimizations for space can be made such as being specific about the types of variables. For example, using a `uint8_t` (1 byte... 8 bits) is a space efficient way to hold numbers 0-255, while using an `int` or an `uint16_t`(2 bytes... 16 bits) might be wasteful.
+
+At first this task of memory management could seem daunting, but in practice, I have found the exercise of being concise and clever with code quite rewarding. Additionally, the Arduino IDE will let you know exactly how much space you are using everytime you press compile. If you open up a blank AutomaTile sketch and press compile, you will see that the sketch is ~4k (49%)
+![Arduino IDE Screenshot](Assets/img/program_space.png)
