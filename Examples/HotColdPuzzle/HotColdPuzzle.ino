@@ -39,10 +39,11 @@ uint8_t numMovesAway;
 uint8_t prevNumMovesAway;
 uint8_t diffNumMovesAway;
 
-uint8_t numNeighborsSolution;
+uint8_t numNeighborsSolution = 0;
 uint8_t numNeighbors;
 uint8_t prevNumNeighbors;
 
+uint8_t lowestNeighborState;
 uint8_t bNeighborsSatisfied;
 uint8_t bNeighborsSatisfiedWaiting;
 uint8_t bNeighborsSolved;
@@ -124,9 +125,10 @@ void loop() {
             
       // 2. Check to see how far away those neighbors are
       numMovesAway = 0;
-      bNeighborsSatisfied = 1;
-      bNeighborsSatisfiedWaiting = 1;
-      bNeighborsSolved = 1;
+      bNeighborsSatisfied = 0;
+      bNeighborsSatisfiedWaiting = 0;
+      bNeighborsSolved = 0;
+      lowestNeighborState = 4;  // start at highest possible
 
       // calculate how far we are from a solution state
       for(uint8_t i=0; i<6; i++) {
@@ -140,15 +142,10 @@ void loop() {
 
             // is neighbor present
             if(neighbors[j] != 0) {
-              // is neighbor solved...
-              if(neighbors[j] != 2) {
-                bNeighborsSatisfied = 0;
-              }
-              if(neighbors[j] != 3) {
-                bNeighborsSatisfiedWaiting = 0;
-              }
-              if(neighbors[j] != 4) {
-                bNeighborsSolved = 0;
+
+              // set lowest neighbor state
+              if(neighbors[j] < lowestNeighborState) {
+                lowestNeighborState = neighbors[j];
               }
                 
               // absolute distance from solution (remember, this is distance on a ring)
@@ -162,6 +159,17 @@ void loop() {
         }
         // return to check the next solution spot
       }
+
+      // are my neighbors solved...
+      if(lowestNeighborState == 2) {
+        bNeighborsSatisfied = 1;
+      }
+      if(lowestNeighborState == 3) {
+        bNeighborsSatisfiedWaiting = 1;
+      }
+      if(lowestNeighborState == 4) {
+        bNeighborsSolved = 1;
+      }
       
       // calculate difference in moves away from before
       diffNumMovesAway = numMovesAway - prevNumMovesAway;
@@ -172,16 +180,15 @@ void loop() {
       // if satisfied, change state
       if(numMovesAway == 0) {
         if(bNeighborsSatisfied) {
-          setState(2);
-          setColor(colors[1]);  // yellow  (satisfied)
-        }
-        else if(bNeighborsSatisfiedWaiting) {
           setState(3);
           setColor(colors[2]);  // green  (satisfied and waiting)
         }
-        else if(bNeighborsSolved) {
+        else if(bNeighborsSatisfiedWaiting) {
           setState(4);
           setColor(colors[3]);  // cyan (solved)
+        }
+        else if(bNeighborsSolved) {
+          // do something here to celebrate :)
         }
         else {
           setState(2);
@@ -212,6 +219,7 @@ void loop() {
 
 void button() {
   // when button is pressed, save the state of neighbors and set to solution array
+  numNeighborsSolution = 0;
   
   // read the values from our neighbors
   getNeighborStates(neighbors);
