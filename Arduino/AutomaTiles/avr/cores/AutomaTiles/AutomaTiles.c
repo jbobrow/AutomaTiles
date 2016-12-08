@@ -3,7 +3,7 @@
  *
  * Created: 1/6/2016 11:56:47
  *  Author: Joshua
- */ 
+ */
 
 #include <stdint.h>
 #include <avr/io.h>
@@ -23,6 +23,9 @@ volatile static uint32_t timer = 0;//.1 ms timer tick
 volatile static uint32_t times[6][4];//ring buffer for holding leading  detection edge times for the phototransistors
 volatile static uint8_t timeBuf[6];//ring buffer indices
 volatile static uint8_t soundEn = 1; //if true, react to sound
+
+// Pin mapping to arrange pins correctly on board
+const uint8_t pinMap[6] = {0,1,2,5,4,3};
 
 uint32_t timeout = 20;
 volatile static uint32_t startTime = 0;
@@ -56,7 +59,7 @@ enum MODE mode = running;
 /* Uses the current state of the times ring buffer to determine the states of neighboring tiles
  * For each side, to have a non-zero state, a pulse must have been received in the last 100 ms and two of the
  * last three timing spaces must be equal.
- * 
+ *
  * State is communicated as a period for the pulses. Differences are calculated between pulses and if a consistent
  * difference is found, that translates directly to a state
  * Accuracy is traded for number of states (i.e. 5 states can be communicated reliably, while 10 with less robustness)
@@ -65,43 +68,44 @@ uint8_t oldData[] = {0,0,0,0,0,0};
 
 void getNeighborStates(uint8_t * result){
 	uint8_t interrupts = SREG&1<<7;
-	
+
 	if(interrupts)cli();//Disable interrupts to safely grab consistent timer value
 	uint32_t curTime = timer;
 	uint32_t diffs[3];
 	uint8_t i;
 	for(i = 0; i < 6; i++){
+
 		if((curTime-times[i][timeBuf[i]])>100){//More than .1 sec since last pulse, too long
-			result[i] = 0;
+			result[pinMap[i]] = 0;
 		}else{//received pulses recently
 			uint8_t buf = timeBuf[i];//All bit-masking is to ensure the numbers are between 0 and 3
 			diffs[0] = times[i][buf] - times[i][(buf-1)&0x03];
 			diffs[1] = times[i][(buf-1)&0x03] - times[i][(buf-2)&0x03];
 			diffs[2] = times[i][(buf-2)&0x03] - times[i][(buf-3)&0x03];
 			if(diffs[0]>100 || diffs[1]>100 || diffs[2] > 100){//Not enough pulses recently
-				result[i] = 0;
+				result[pinMap[i]] = 0;
 				oldData[i] = 0;
 			}else{//received enough pulses recently
-				//rounding 
+				//rounding
 				diffs[0] >>= 3;
 				diffs[1] >>= 3;
 				diffs[2] >>= 3;
 				//checking if any two of the differences are equal and using a value from the equal pair
 				if(diffs[0] == diffs[1] &&diffs[0] == diffs[2]){
-					result[i] = (uint8_t) diffs[0];
+					result[pinMap[i]] = (uint8_t) diffs[0];
 					oldData[i]=result[i];
 				}else{//too much variation reuse old value
-					result[i] = oldData[i];
+					result[pinMap[i]] = oldData[i];
 				}
 			}
 		}
-	}	
+	}
 	if(interrupts)sei();//Re-enable interrupts
 }
 
 uint32_t getTimer(){
 	uint8_t interrupts = SREG&1<<7;
-	
+
 	if(interrupts)cli();
 	uint32_t t = timer;
 	if(interrupts)sei();
@@ -118,7 +122,7 @@ void setState(uint8_t newState){
 	{
 		state = newState;
 	}
-	
+
 }
 
 uint8_t getState(){
@@ -126,7 +130,7 @@ uint8_t getState(){
 }
 
 void setMicOn(){
-	soundEn = 1;	
+	soundEn = 1;
 }
 
 void  setMicOff(){
@@ -198,7 +202,7 @@ void setTimerCallbackTime(uint16_t t){
 
 void sendStep(){
 	uint8_t interrupts = SREG&1<<7;
-	
+
 	if(interrupts)	cli();
 	uint32_t t = timer;
 	if(interrupts)sei();
@@ -206,7 +210,7 @@ void sendStep(){
 	uint8_t done = 0;
 	sync = 3;
 	holdoff = 200;
-	
+
 	while(!done){
 		cli();
 		t = timer;
@@ -228,7 +232,7 @@ uint8_t getSharedData(uint8_t i){
 	if(i>=datLen){
 		return 0;
 	}
-	
+
 	return datBuf[i];
 }
 
@@ -238,13 +242,13 @@ ISR(TIM0_COMPA_vect){
 	static uint8_t IRcount = 0;//Tracks cycles for accurate IR LED timing
 	static uint8_t sendState = 0;//State currently being sent. only updates on pulse to ensure accurate states are sent
 	timer++;
-		
+
 	timerCBcount++;
 	if(timerCBcount >= timerCBtime){
 		timerCB();
-		timerCBcount = 0;	
+		timerCBcount = 0;
 	}
-		
+
 	if(mode==running){
 		//check if a click has happened and call appropriate function
 		if(click){
@@ -252,7 +256,7 @@ ISR(TIM0_COMPA_vect){
 			holdoff = 100;
 			click = 0;
 		}
-		
+
 		IRcount++;
 		if(IRcount>=(uint8_t)(sendState*8+4)){//State timings are off by 4 from a multiple of 8 to help with detection
 			IRcount = 0;
@@ -260,7 +264,7 @@ ISR(TIM0_COMPA_vect){
 				sendState = state;
 			}
 		}
-		
+
 		if(IRcount==5){
 			PORTB |= IR;
 			DDRB |= IR;
@@ -284,7 +288,7 @@ ISR(TIM0_COMPA_vect){
 		}else{
 			DDRB &= ~IR;//Set direction in
 			PORTB &= ~IR;//Set pin tristated
-			
+
 			 if(longPressTimer<longPressTime){//during long press wait
 				longPressTimer++;
 			 }
@@ -295,7 +299,7 @@ ISR(TIM0_COMPA_vect){
 						sleepTimer = timer;
 						powerDownTimer = timer;
 						longPressTimer = 0;
-					}else{//during long press wait						
+					}else{//during long press wait
 						if(longPressTimer>=longPressTime){
 							longButtonCB();
 						}
@@ -316,7 +320,7 @@ ISR(TIM0_COMPA_vect){
 			wake = 1;
 			sleepTimer = timer;
 		}
-		if(wake == 1){			
+		if(wake == 1){
 			startTime = timer;
 			PORTA &= ~POWER;
 			wake = 2;
@@ -367,15 +371,15 @@ ISR(PCINT0_vect){
 	static uint8_t pulseCount[6]; //stores counted pulses for various actions
 	uint8_t vals = PINA & 0x3f; //mask out phototransistors
 	uint8_t newOn = vals & ~prevVals; //mask out previously on pins
-		
+
 	if(mode == running){
 		powerDownTimer = timer;
-		
+
 		uint8_t i;
 		for(i = 0; i < 6; i++){
 			if(newOn & 1<<i){ //if an element is newly on,
 				if(timer-times[i][timeBuf[i]]<10){//This is a rapid pulse. treat like a click
-					pulseCount[i]++;					
+					pulseCount[i]++;
 					wake = 1;
 					if(pulseCount[i]==2){
 						if(holdoff==0){
@@ -384,7 +388,7 @@ ISR(PCINT0_vect){
 							sleepTimer = timer;
 						}
 					}
-					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.	
+					if(pulseCount[i]>=4){//There have been 4 quick pulses. Enter programming mode.
 						click = 0;
 						sync = 0;
 						mode = recieving;
@@ -402,7 +406,7 @@ ISR(PCINT0_vect){
 					times[i][timeBuf[i]] = timer;
 				}
 			}
-		}	
+		}
 	}else if(mode == recieving){
 		modeStart = timer;
 		if(((prevVals^vals)&(1<<progDir))){//programming pin has changed
@@ -419,11 +423,11 @@ ISR(PCINT0_vect){
 					uint8_t bit = ((vals&(1<<progDir))>>progDir);
 					comBuf[bitsRcvd/8-1] |= bit<<(bitsRcvd%8);
 					bitsRcvd++;
-				}				
+				}
 			}
 		}
 	}
-	
+
 	prevVals = vals;
 }
 
@@ -435,11 +439,11 @@ ISR(ADC_vect){
 	//Values saved for derivative calculation
 	static uint16_t median = 1<<15;
 	static uint16_t medDelta = 1<<5;
-	
+
 	uint8_t adc;
-	
+
 	adc = ADCH;// Record ADC value
-	
+
 	//update running median. Error on high side.
 	//note that due to comparison, the median is scaled up by 2^8
 	if((adc<<8)<median){
@@ -453,7 +457,7 @@ ISR(ADC_vect){
 		}else{
 		delta = adc-(median>>8);
 	}
-	
+
 	//Update running delta median. Error on high side.
 	//note that due to comparison, the median is scaled up by 2^4=16
 	if((delta<<4)<medDelta && medDelta > 10){
@@ -461,7 +465,7 @@ ISR(ADC_vect){
 		}else{
 		medDelta++;
 	}
-	
+
 	if(holdoff == 0){//holdoff can be set elsewhere to disable click being set for a period of time
 		if(medDelta < delta){//check for click. as the median delta is scaled up by 16, an exceptional event is needed.
 			if(soundEn){
