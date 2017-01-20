@@ -17,10 +17,6 @@ void button() {
 	// handle button down here
 }
 
-void step() {
-	// discrete time logic here
-}
-
 ```
 
 ###AutomaTile methods###
@@ -29,13 +25,6 @@ void step() {
 ```c
 void getNeighborStates(uint8_t * result);
 // pass it an array for the size of the neighborhood and it will return each neighbor’s state in that array. 
-```
-**sendStep**
-```c
-void sendStep(void);
-// step forward in time, simulate ruleset
-// maximum frequency 10Hz
-// these do not cue up, i.e. if you send step more frequently, steps will be dropped 
 ```
 **getTimer**
 ```c
@@ -58,13 +47,6 @@ void setState(uint8_t state);
 ```c
 uint8_t getState(void);
 // get’s our own current state, 0-15 
-```
-**setStepCallback**
-```c
-void setStepCallback(cb_func cb); 
-// pass your own function to setStepCallback, this function takes no arguments and returns nothing
-// can be set once in the beginning of your application, but can also be hot-swapped during runtime
-// defaults to do nothing (change this to default to flash red… or white) 
 ```
 **setButtonCallback**
 ```c
