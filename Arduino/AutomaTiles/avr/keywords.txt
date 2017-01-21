@@ -1,0 +1,33 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#DATA_TYPE  KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+tileSetup KEYWORD2
+getNeighborStates KEYWORD2
+sendStep  KEYWORD2
+getTimer  KEYWORD2
+setColor  KEYWORD2
+setState  KEYWORD2
+setStepCallback KEYWORD2
+setLongButtonCallback KEYWORD2
+setLongButtonCallbackTimer  KEYWORD2
+setButtonCallback KEYWORD2
+setTimerCallback  KEYWORD2
+setTimerCallbackTime  KEYWORD2
+setTimeout  KEYWORD2
+setMicOn  KEYWORD2
+setMicOff KEYWORD2
+
+######################################
+# Constants (LITERAL1)
+#######################################
+PULSE_WIDTH LITERAL1
