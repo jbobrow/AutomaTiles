@@ -7,7 +7,7 @@
 
 ##############################################################
 # AutomaTile Programming Configuration
-automatile.name=AutomaTile
+automatile.name=AutomaTile Legacy
 automatile.bootloader.low_fuses=0x62
 automatile.bootloader.high_fuses=0xdf
 automatile.bootloader.extended_fuses=0xff
